@@ -48,6 +48,21 @@ class Quest
         $this->response = $response ?: new Response;
     }
 
+    /**
+     * Magical get functions for properties.
+     *
+     * @param string $key Key to find.
+     * @return mixed Found value for property.
+     */
+    public function __get($key)
+    {
+        if (isset($this->$key)) {
+            return $this->$key;
+        }
+
+        return null;
+    }
+
     /** Public functions. */
 
     /**
@@ -168,7 +183,7 @@ class Quest
      * @param  string $path Path to convert.
      * @return string Regex for path.
      */
-    public static function pathToRegex($path)
+    protected static function pathToRegex($path)
     {
         $pattern = array("/\A\/*/", "/\/*\z/", "/\//", "/\./", "/\((.*?)\)/", "/\*/", "/\:(\w+)/");
         $replace = array("/", "/?", "\/", "\.", "(?:\\1)?", "(.*?)", "(\w+)");
