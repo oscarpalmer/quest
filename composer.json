@@ -1,0 +1,27 @@
+{
+  "author": [{
+    "email": "opalmer@me.com",
+    "homepage": "http://opalmer.me",
+    "name": "Oscar Palmér",
+    "role": "developer"
+  }],
+  "autoload": {
+    "psr-0": {
+      "oscarpalmer\\Quest": ["src/"]
+    }
+  },
+  "description": "A PHP router.",
+  "homepage": "http://github.com/oscarpalmer/quest",
+  "keywords": [
+    "router"
+  ],
+  "license": "MIT",
+  "name": "oscarpalmer/quest",
+  "require": {
+    "oscarpalmer/shelf": "dev-master",
+    "php": ">=5.3.0"
+  },
+  "require-dev": {
+    "league/phpunit-coverage-listener": "dev-master"
+  }
+}
