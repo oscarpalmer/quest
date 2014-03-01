@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/oscarpalmer/quest.png?branch=master)](https://travis-ci.org/oscarpalmer/quest) [![Coverage Status](https://coveralls.io/repos/oscarpalmer/quest/badge.png?branch=master)](https://coveralls.io/r/oscarpalmer/quest?branch=master)
 
-Quest is a router for PHP.
+Quest is a router for PHP `>=5.3`.
 
 ## The name
 
