@@ -42,10 +42,9 @@ $quest->run();
 
 ## Todo
 
-- Errors.
-- Filters.
 - Request and Response helper methods.
-- More and better documentation.
+- API documentation.
+- Improved documentation.
 
 ## License
 
