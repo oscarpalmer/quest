@@ -16,6 +16,16 @@ class Quest
     const VERSION = "0.1.0";
 
     /**
+     * @var array Array of error callbacks.
+     */
+    protected $errors;
+
+    /**
+     * @var array Array of filters.
+     */
+    protected $filters;
+
+    /**
      * @var Request Shelf Request object.
      */
     protected $request;
@@ -31,17 +41,20 @@ class Quest
     protected $routes;
 
     /**
-     * Create a new Quest object from array of routes and Shelf objects.
+     * Create a new Quest object from array of routes and errors and Shelf objects.
      *
      * @param array    $routes   Array of routes.
+     * @param array    $errors   Array of error callbacks.
      * @param Request  $request  Shelf Request object.
      * @param Response $response Shelf Response object.
      */
     public function __construct(
         array $routes = array(),
+        array $errors = array(),
         Request $request = null,
         Response $response = null
     ) {
+        $this->errors = $errors;
         $this->routes = $routes;
 
         $this->request = $request ?: Request::fromGlobals();
@@ -51,8 +64,8 @@ class Quest
     /**
      * Magical get functions for properties.
      *
-     * @param string $key Key to find.
-     * @return mixed Found value for property.
+     * @param  string $key Key to find.
+     * @return mixed  Found value for property.
      */
     public function __get($key)
     {
@@ -66,56 +79,128 @@ class Quest
     /** Public functions. */
 
     /**
+     * Add a filter to run after routing.
+     *
+     * @param  callable Callback for filter.
+     * @return Quest Quest object for optional chaining.
+     */
+    public function after($callback)
+    {
+        if (is_callable($callback)) {
+            $this->filters["after"] = $callback;
+
+            return $this;
+        }
+
+        throw new \InvalidArgumentException("Callback must be a callable, " . gettype($callback) . " given.");
+    }
+
+    /**
+     * Add a filter to run before routing.
+     *
+     * @param  callable Callback for filter.
+     * @return Quest Quest object for optional chaining.
+     */
+    public function before($callback)
+    {
+        if (is_callable($callback)) {
+            $this->filters["before"] = $callback;
+
+            return $this;
+        }
+
+        throw new \InvalidArgumentException("Callback must be a callable, " . gettype($callback) . " given.");
+    }
+
+    /**
      * Add a DELETE route.
      *
-     * @param string   $path     Path for route.
-     * @param callable $callback Callback for route.
+     * @param  string   $path     Path for route.
+     * @param  callable $callback Callback for route.
+     * @return Quest    Quest object for optional chaining.
      */
     public function delete($path, $callback)
     {
         $this->addRoute("DELETE", $path, $callback);
+
+        return $this;
+    }
+
+    /**
+     * Add or run an error callback.
+     *
+     * @param  int      $status   Status code for error.
+     * @param  callable $callback Callback for error.
+     * @return Quest    Quest object for optional chaining.
+     */
+    public function error($status, $callback = null)
+    {
+        if (is_int($status) === false) {
+            throw new \InvalidArgumentException("Status must be an integer, " . gettype($status) . " given.");
+        }
+
+        if (isset($callback)) {
+            if (is_callable($callback) === false) {
+                throw new \InvalidArgumentException("Callback must be a callable, " . gettype($callback) . " given.");
+            }
+
+            $this->errors[$status] = $callback;
+
+            return $this;
+        }
+
+        $this->errorCallback($status);
     }
 
     /**
      * Add a GET (and HEAD) route.
      *
-     * @param string   $path     Path for route.
-     * @param callable $callback Callback for route.
+     * @param  string   $path     Path for route.
+     * @param  callable $callback Callback for route.
+     * @return Quest    Quest object for optional chaining.
      */
     public function get($path, $callback)
     {
         $this->addRoute(array("GET", "HEAD"), $path, $callback);
+
+        return $this;
     }
 
     /**
      * Add a POST route.
      *
-     * @param string   $path     Path for route.
-     * @param callable $callback Callback for route.
+     * @param  string   $path     Path for route.
+     * @param  callable $callback Callback for route.
+     * @return Quest    Quest object for optional chaining.
      */
     public function post($path, $callback)
     {
         $this->addRoute("POST", $path, $callback);
+
+        return $this;
     }
 
     /**
      * Add a PUT route.
      *
-     * @param string   $path     Path for route.
-     * @param callable $callback Callback for route.
+     * @param  string   $path     Path for route.
+     * @param  callable $callback Callback for route.
+     * @return Quest    Quest object for optional chaining.
      */
     public function put($path, $callback)
     {
         $this->addRoute("PUT", $path, $callback);
+
+        return $this;
     }
 
     /**
-     *
+     * Run the callback and finish the response.
      */
     public function run()
     {
         $this->callback();
-        $this->response->finish();
+        $this->response->finish($this->request);
     }
 
     /** Protected functions. */
@@ -140,12 +225,44 @@ class Quest
         ob_start();
 
         try {
+            $this->filter("before");
             $this->router();
         } catch (Exception\Halt $exception) {
             $this->response->write($exception->getMessage());
+            $this->filter("after");
         }
 
         ob_end_clean();
+    }
+
+    /**
+     * Run a filter callback.
+     *
+     * @param string $name Name for filter.
+     */
+    protected function filter($name)
+    {
+        if (isset($this->filters[$name])) {
+            $returned = call_user_func($this->filters[$name], $this);
+
+            $this->response->write($returned);
+        }
+    }
+
+    /**
+     * Run a user defined or default error callback.
+     *
+     * @param int $status Status code for error.
+     */
+    protected function errorCallback($status)
+    {
+        $this->response->setStatus($status);
+
+        if (isset($this->errors[$status])) {
+            throw new Exception\Halt(call_user_func($this->errors[$status], $this));
+        } else {
+            throw new Exception\Halt($this->response->getStatusMessage());
+        }
     }
 
     /**
@@ -160,19 +277,19 @@ class Quest
             if (in_array($method, $route->methods)) {
                 $regex = static::pathToRegex($route->path);
 
-                if (preg_match($regex, $path, $keys)) {
-                    array_shift($keys);
+                if (preg_match($regex, $path, $params)) {
+                    array_shift($params);
 
-                    $returned = call_user_func_array($route->callback, $keys);
+                    $params[] = $this;
+
+                    $returned = call_user_func_array($route->callback, $params);
 
                     throw new Exception\Halt($returned);
                 }
             }
         }
 
-        $this->response->setStatus($method === "GET" ? 404 : 405);
-
-        throw new Exception\Halt($this->response->getStatusMessage());
+        $this->errorCallback($method === "GET" ? 404 : 405);
     }
 
     /** Static functions. */
