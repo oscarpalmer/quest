@@ -3,7 +3,7 @@
 namespace oscarpalmer\Quest\Test;
 
 use oscarpalmer\Quest\Quest;
-use oscarpalmer\Quest\Route;
+use oscarpalmer\Quest\Item;
 use oscarpalmer\Quest\Exception\Halt;
 use oscarpalmer\Shelf\Request;
 
@@ -19,10 +19,10 @@ class QuestTest extends \PHPUnit_Framework_TestCase
         $this->simple_request = new Request(array("REQUEST_URI" => "/"));
 
         $this->routes = array(
-            new Route(array("GET"), "/", function () {
+            new Item(array("GET"), "/", function () {
                 return "index";
             }),
-            new Route(array("GET"), "/:a/:b.:c", function () {
+            new Item(array("GET"), "/:a/:b.:c", function () {
                 return "a/b.c";
             })
         );
@@ -135,20 +135,22 @@ class QuestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers oscarpalmer\Quest\Quest::addFilter
      * @covers oscarpalmer\Quest\Quest::after
      * @covers oscarpalmer\Quest\Quest::before
      * @covers oscarpalmer\Quest\Quest::filter
      */
     public function testFilters()
     {
-        $quest = new Quest($this->routes, $this->simple_request);
+        $quest = new Quest($this->routes, $this->regex_request);
 
         $quest->after(function () { return " after"; });
         $quest->before(function () { return "before "; });
+        $quest->before("/a/b.c", function () { return "path_before "; });
 
         $quest->run();
 
-        $this->expectOutputString("before index after");
+        $this->expectOutputString("before path_before a/b.c after");
     }
 
     /**

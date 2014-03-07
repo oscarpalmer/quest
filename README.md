@@ -110,9 +110,11 @@ $quest->response;                   # Shelf Response object.
 $quest->routes;                     # Array of routes.
 
 # Filter methods
-$quest->after($callback);           # Add an after filter to run after routing.
-$quest->before($callback);          # Add a before filter to run before routing.
-                                    # $callback must be a callable.
+$quest->after($callback);           # Add an after filter without a path to run after routing.
+$quest->after($path, $callback);    # Add an after filter with a path to run after routing.
+$quest->before($callback);          # Add an after filter without a path to run after routing.
+$quest->before($path, $callback);   # Add a before filter with a path to run before routing.
+                                    # $path must be a string, and $callback must be a callable.
 
 # Route methods
 $quest->delete($path, $callback);   # Add a DELETE route;
@@ -135,7 +137,6 @@ $quest->run();                      # Let the questing (routing) begin!
 ## Todo
 
 - Helper methods.
-- Better filters.
 
 ## License
 

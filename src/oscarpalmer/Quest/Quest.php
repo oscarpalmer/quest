@@ -54,7 +54,7 @@ class Quest
         Response $response = null
     ) {
         $this->errors = array();
-        $this->filters = array();
+        $this->filters = array("after" => array(), "before" => array());
         $this->routes = $routes;
 
         $this->request = $request ?: Request::fromGlobals();
@@ -81,35 +81,29 @@ class Quest
     /**
      * Add a filter to run after routing.
      *
-     * @param  callable Callback for filter.
+     * @param  mixed $path     Path for filter; callback if no path is supplied.
+     * @param  mixed $callback Callback for filter; null if no path is supplied.
      * @return Quest Quest object for optional chaining.
      */
-    public function after($callback)
+    public function after($path, $callback = null)
     {
-        if (is_callable($callback)) {
-            $this->filters["after"] = $callback;
+        $this->addFilter("after", $path, $callback);
 
-            return $this;
-        }
-
-        throw new \InvalidArgumentException("Callback must be a callable, " . gettype($callback) . " given.");
+        return $this;
     }
 
     /**
      * Add a filter to run before routing.
      *
-     * @param  callable Callback for filter.
+     * @param  mixed $path     Path for filter; callback if no path is supplied.
+     * @param  mixed $callback Callback for filter; null if no path is supplied.
      * @return Quest Quest object for optional chaining.
      */
-    public function before($callback)
+    public function before($path, $callback = null)
     {
-        if (is_callable($callback)) {
-            $this->filters["before"] = $callback;
+        $this->addFilter("before", $path, $callback);
 
-            return $this;
-        }
-
-        throw new \InvalidArgumentException("Callback must be a callable, " . gettype($callback) . " given.");
+        return $this;
     }
 
     /**
@@ -149,7 +143,7 @@ class Quest
             return $this;
         }
 
-        $this->errorCallback($status);
+        return $this->errorCallback($status);
     }
 
     /**
@@ -206,7 +200,24 @@ class Quest
     /** Protected functions. */
 
     /**
-     * Add a new Route object to the routes array.
+     * Add a filter with an optional path.
+     *
+     * @param string $type     Type of filter.
+     * @param mixed  $path     Path for filter; callback if no path is supplied.
+     * @param mixed  $callback Callback for filter; null if no path is supplied.
+     */
+    protected function addFilter($type, $path, $callback)
+    {
+        if (is_null($callback)) {
+            $callback = $path;
+            $path = "*";
+        }
+
+        $this->filters[$type][] = new Item(array(), $path, $callback);
+    }
+
+    /**
+     * Add a new Item object to the routes array.
      *
      * @param mixed    $method   Request method for route.
      * @param string   $path     Path for route.
@@ -214,7 +225,7 @@ class Quest
      */
     protected function addRoute($method, $path, $callback)
     {
-        $this->routes[] = new Route((array) $method, $path, $callback);
+        $this->routes[] = new Item((array) $method, $path, $callback);
     }
 
     /**
@@ -242,10 +253,18 @@ class Quest
      */
     protected function filter($name)
     {
-        if (isset($this->filters[$name])) {
-            $returned = call_user_func($this->filters[$name], $this);
+        foreach ($this->filters[$name] as $filter) {
+            $regex = static::pathToRegex($filter->path);
 
-            $this->response->write($returned);
+            if (preg_match($regex, $this->request->path_info, $params)) {
+                array_shift($params);
+
+                $params[] = $this;
+
+                $returned = call_user_func_array($filter->callback, $params);
+
+                $this->response->write($returned);
+            }
         }
     }
 
@@ -289,7 +308,7 @@ class Quest
             }
         }
 
-        $this->errorCallback($method === "GET" ? 404 : 405);
+        return $this->errorCallback($method === "GET" ? 404 : 405);
     }
 
     /** Static functions. */
