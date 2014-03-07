@@ -20,9 +20,10 @@ Quest is available via Composer.
 
 ```json
 {
+  "minimum-stability": "alpha",
   "require": {
-    "oscarpalmer/quest": "dev-master",
-    "oscarpalmer/shelf": "dev-master"
+    "oscarpalmer/quest": "1.*",
+    "oscarpalmer/shelf": "1.*"
   }
 }
 ```
