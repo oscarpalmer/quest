@@ -3,31 +3,31 @@
 namespace oscarpalmer\Quest;
 
 /**
- * Route class.
+ * Item class.
  */
-class Route
+class Item
 {
     /**
-     * @var callable Callback for route.
+     * @var callable Callback for item.
      */
     public $callback;
 
     /**
-     * @var array Request method(s) for route.
+     * @var array Request method(s) for item.
      */
     public $methods;
 
     /**
-     * @var string Path for route.
+     * @var string Path for item.
      */
     public $path;
 
     /**
-     * Create a new Request object from request method(s), path, and callback.
+     * Create a new Item object from request method(s), path, and callback.
      *
-     * @param mixed    $method   Request method(s) for route.
-     * @param string   $path     Path for route.
-     * @param callable $callback Callback for route.
+     * @param mixed    $method   Request method(s) for item.
+     * @param string   $path     Path for item.
+     * @param callable $callback Callback for item.
      */
     public function __construct(array $methods, $path, $callback)
     {
