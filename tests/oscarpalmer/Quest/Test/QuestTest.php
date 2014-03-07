@@ -30,7 +30,7 @@ class QuestTest extends \PHPUnit_Framework_TestCase
 
     public function testConstructor()
     {
-        $quest = new Quest($this->routes, array(), $this->simple_request);
+        $quest = new Quest($this->routes, $this->simple_request);
 
         $this->assertNotNull($quest);
         $this->assertInstanceOf("oscarpalmer\Quest\Quest", $quest);
@@ -45,7 +45,8 @@ class QuestTest extends \PHPUnit_Framework_TestCase
 
         $this->assertInstanceOf("oscarpalmer\Shelf\Request", $quest->request);
         $this->assertInstanceOf("oscarpalmer\Shelf\Response", $quest->response);
-        $this->assertInternalType("array", $quest->routes);
+        $this->assertInternalType("array", $quest->errors);
+        $this->assertInternalType("array", $quest->filters);
         $this->assertInternalType("array", $quest->routes);
         $this->assertNull($quest->not_a_property);
     }
@@ -73,7 +74,7 @@ class QuestTest extends \PHPUnit_Framework_TestCase
 
     public function testCustomError()
     {
-        $quest = new Quest(array(), array(), $this->simple_request);
+        $quest = new Quest(array(), $this->simple_request);
         $quest->error(404, function () { return "Custom error."; });
 
         try {
@@ -87,7 +88,7 @@ class QuestTest extends \PHPUnit_Framework_TestCase
 
     public function testBadErrors()
     {
-        $quest = new Quest(array(), array(), $this->simple_request);
+        $quest = new Quest(array(), $this->simple_request);
 
         foreach (array(
             500 => "bad",
@@ -104,7 +105,7 @@ class QuestTest extends \PHPUnit_Framework_TestCase
 
     public function testBadFilters()
     {
-        $quest = new Quest(array(), array(), $this->simple_request);
+        $quest = new Quest(array(), $this->simple_request);
 
         foreach (array(
             "after" => null,
@@ -127,7 +128,7 @@ class QuestTest extends \PHPUnit_Framework_TestCase
      */
     public function testErrorRun()
     {
-        $quest = new Quest(array(), array(), $this->simple_request);
+        $quest = new Quest(array(), $this->simple_request);
         $quest->run();
 
         $this->expectOutputString("404 Not Found");
@@ -140,7 +141,7 @@ class QuestTest extends \PHPUnit_Framework_TestCase
      */
     public function testFilters()
     {
-        $quest = new Quest($this->routes, array(), $this->simple_request);
+        $quest = new Quest($this->routes, $this->simple_request);
 
         $quest->after(function () { return " after"; });
         $quest->before(function () { return "before "; });
@@ -158,7 +159,7 @@ class QuestTest extends \PHPUnit_Framework_TestCase
      */
     public function testRegexRun()
     {
-        $quest = new Quest($this->routes, array(), $this->regex_request);
+        $quest = new Quest($this->routes, $this->regex_request);
         $quest->run();
 
         $this->expectOutputString("a/b.c");
@@ -171,7 +172,7 @@ class QuestTest extends \PHPUnit_Framework_TestCase
      */
     public function testSimpleRun()
     {
-        $quest = new Quest($this->routes, array(), $this->simple_request);
+        $quest = new Quest($this->routes, $this->simple_request);
         $quest->run();
 
         $this->expectOutputString("index");

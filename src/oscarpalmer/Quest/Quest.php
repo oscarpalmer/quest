@@ -41,20 +41,20 @@ class Quest
     protected $routes;
 
     /**
-     * Create a new Quest object from array of routes and errors and Shelf objects.
+     * Create a new Quest object from an array of routes and Shelf objects;
+     * parameters are optional.
      *
      * @param array    $routes   Array of routes.
-     * @param array    $errors   Array of error callbacks.
      * @param Request  $request  Shelf Request object.
      * @param Response $response Shelf Response object.
      */
     public function __construct(
         array $routes = array(),
-        array $errors = array(),
         Request $request = null,
         Response $response = null
     ) {
-        $this->errors = $errors;
+        $this->errors = array();
+        $this->filters = array();
         $this->routes = $routes;
 
         $this->request = $request ?: Request::fromGlobals();

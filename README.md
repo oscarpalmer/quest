@@ -98,9 +98,8 @@ try_files $uri /index.php;
 
 ```php
 # Constructor
-$quest = new Quest($a, $b, $c, $d); # Optional parameters; array of routes,
-                                    # array of error callbacks, and Request and
-                                    # Response objects from Shelf; useful for testing.
+$quest = new Quest($a, $b, $c);     # Optional parameters; array of routes, and Request
+                                    # and Response objects from Shelf; useful for testing.
 
 # Constants and properties
 $quest::VERSION;                    # Current Quest version number.
