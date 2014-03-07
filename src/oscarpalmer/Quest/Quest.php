@@ -161,6 +161,23 @@ class Quest
     }
 
     /**
+     * Halt the response with a status code and display an optional message.
+     *
+     * @param int         $status  Status code for halted response.
+     * @param null|scalar $message Message to display.
+     */
+    public function halt($status, $message = null)
+    {
+        if (is_null($message)) {
+            return $this->errorCallback($status);
+        }
+
+        $this->response->setStatus($status);
+
+        throw new Exception\Halt($message);
+    }
+
+    /**
      * Add a POST route.
      *
      * @param  string   $path     Path for route.
@@ -186,6 +203,23 @@ class Quest
         $this->addRoute("PUT", $path, $callback);
 
         return $this;
+    }
+
+    /**
+     * Redirection.
+     *
+     * @param string Where to end up.
+     * @param int    Valid status code for redirection.
+     */
+    public function redirect($location, $status = 302)
+    {
+        if (is_string($location)) {
+            $this->response->setHeader("Location", $location);
+
+            return $this->halt($status);
+        }
+
+        throw new \InvalidArgumentException("Location must be a string, " . gettype($location) . " given.");
     }
 
     /**

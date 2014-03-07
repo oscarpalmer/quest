@@ -153,6 +153,58 @@ class QuestTest extends \PHPUnit_Framework_TestCase
         $this->expectOutputString("before path_before a/b.c after");
     }
 
+    public function testHalt()
+    {
+        $quest = new Quest(array(), $this->simple_request);
+
+        $quest->get("/", function ($quest) {
+            $quest->halt(406);
+        });
+
+        $quest->run();
+
+        $this->expectOutputString("406 Not Acceptable");
+    }
+
+    public function testHaltCustom()
+    {
+        $quest = new Quest(array(), $this->simple_request);
+
+        $quest->get("/", function ($quest) {
+            $quest->halt(406, "Boo!");
+        });
+
+        $quest->run();
+
+        $this->expectOutputString("Boo!");
+    }
+
+    public function testRedirect()
+    {
+        $quest = new Quest(array(), $this->simple_request);
+
+        try {
+            $quest->redirect("/a/b.c");
+        } catch (Halt $e) {
+            $this->assertNotNull($e);
+            $this->assertInstanceOf("oscarpalmer\Quest\Exception\Halt", $e);
+
+            $this->assertSame("302 Found", $e->getMessage());
+        }
+    }
+
+    public function testRedirectError()
+    {
+        $quest = new Quest(array(), $this->simple_request);
+
+        try {
+            $quest->redirect(null);
+        } catch (\Exception $e) {
+            $this->assertNotNull($e);
+            $this->assertInstanceOf("InvalidArgumentException", $e);
+        }
+    }
+
     /**
      * @covers oscarpalmer\Quest\Quest::callback
      * @covers oscarpalmer\Quest\Quest::pathToRegex
