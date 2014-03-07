@@ -27,7 +27,7 @@ Quest is available via Composer.
 }
 ```
 
-Quest uses [Shelf](/oscarpalmer/shelf), a Rack-like interface for PHP made by me. It's pretty cool.
+Quest uses [Shelf](//github.com/oscarpalmer/shelf), a Rack-like interface for PHP made by me. It's pretty cool.
 
 ### Basic usage
 
@@ -47,7 +47,7 @@ And that's it! But I'm sure you'll want to know more about [routing](#routing) a
 
 ## Routing
 
-If you've ever used something like [Sinatra](//sinatrarb.com), then routing with Quest shouldn't be too difficult.
+If you've ever used something like [Sinatra](http://sinatrarb.com), then routing with Quest shouldn't be too difficult.
 
 There are three kinds of routing parameters that'll make working with complex routes a piece of cake.
 
