@@ -16,9 +16,10 @@
     "router"
   ],
   "license": "MIT",
+  "minimum-stability": "alpha",
   "name": "oscarpalmer/quest",
   "require": {
-    "oscarpalmer/shelf": "dev-master",
+    "oscarpalmer/shelf": "1.*",
     "php": ">=5.3.0"
   },
   "require-dev": {
