@@ -1,6 +1,6 @@
 # Quest
 
-[![Build Status](https://travis-ci.org/oscarpalmer/quest.png?branch=master)](https://travis-ci.org/oscarpalmer/quest) [![Coverage Status](https://coveralls.io/repos/oscarpalmer/quest/badge.png?branch=master)](https://coveralls.io/r/oscarpalmer/quest?branch=master)
+[![PHP version](https://badge.fury.io/ph/oscarpalmer%2Fquest.png)](http://badge.fury.io/ph/oscarpalmer%2Fquest) [![Build Status](https://travis-ci.org/oscarpalmer/quest.png?branch=master)](https://travis-ci.org/oscarpalmer/quest) [![Coverage Status](https://coveralls.io/repos/oscarpalmer/quest/badge.png?branch=master)](https://coveralls.io/r/oscarpalmer/quest?branch=master)
 
 Quest is a router for PHP `>=5.3`.
 
