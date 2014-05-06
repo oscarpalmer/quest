@@ -16,7 +16,6 @@
     "router"
   ],
   "license": "MIT",
-  "minimum-stability": "alpha",
   "name": "oscarpalmer/quest",
   "require": {
     "oscarpalmer/shelf": "1.*",
