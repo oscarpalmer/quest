@@ -13,7 +13,7 @@ class Quest
     /**
      * @var string Current version number.
      */
-    const VERSION = "1.0.0-alpha";
+    const VERSION = "1.0.0";
 
     /**
      * @var array Array of error callbacks.
