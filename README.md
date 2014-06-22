@@ -21,7 +21,7 @@ Quest is available via Composer.
 ```json
 {
   "require": {
-    "oscarpalmer/quest": "1.*",
+    "oscarpalmer/quest": "1.1.*",
     "oscarpalmer/shelf": "1.*"
   }
 }
