@@ -22,7 +22,7 @@ class QuestTest extends \PHPUnit_Framework_TestCase
             new Item(array("GET"), "/", function () {
                 return "index";
             }),
-            new Item(array("GET"), "/:a/:b.:c", function () {
+            new Item(array("GET"), "/*/:b.:c", function () {
                 return "a/b.c";
             })
         );
@@ -121,7 +121,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers oscarpalmer\Quest\Quest::callback
      * @covers oscarpalmer\Quest\Quest::errorCallback
      * @covers oscarpalmer\Quest\Quest::router
      * @covers oscarpalmer\Quest\Quest::run
@@ -138,7 +137,7 @@ class QuestTest extends \PHPUnit_Framework_TestCase
      * @covers oscarpalmer\Quest\Quest::addFilter
      * @covers oscarpalmer\Quest\Quest::after
      * @covers oscarpalmer\Quest\Quest::before
-     * @covers oscarpalmer\Quest\Quest::filter
+     * @covers oscarpalmer\Quest\Quest::router
      */
     public function testFilters()
     {
@@ -179,6 +178,17 @@ class QuestTest extends \PHPUnit_Framework_TestCase
         $this->expectOutputString("Boo!");
     }
 
+    public function testHeaders()
+    {
+        $quest = new Quest(array(), $this->simple_request);
+
+        $quest->header("x-powered-by", "Quest!");
+        $this->assertSame($quest->header("x-powered-by"), "Quest!");
+
+        $quest->contentType("special/quest");
+        $this->assertSame($quest->contentType(), "special/quest");
+    }
+
     public function testRedirect()
     {
         $quest = new Quest(array(), $this->simple_request);
@@ -206,7 +216,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers oscarpalmer\Quest\Quest::callback
      * @covers oscarpalmer\Quest\Quest::pathToRegex
      * @covers oscarpalmer\Quest\Quest::router
      * @covers oscarpalmer\Quest\Quest::run
@@ -220,7 +229,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers oscarpalmer\Quest\Quest::callback
      * @covers oscarpalmer\Quest\Quest::router
      * @covers oscarpalmer\Quest\Quest::run
      */
@@ -230,5 +238,25 @@ class QuestTest extends \PHPUnit_Framework_TestCase
         $quest->run();
 
         $this->expectOutputString("index");
+    }
+
+    /**
+     * @covers oscarpalmer\Quest\Quest::setParameters
+     */
+    public function testSetParameters()
+    {
+        $quest = new Quest(array(), $this->regex_request);
+
+        $quest->get("/*/:file.:ext", function ($x, $y, $z, $q) {
+            $splat = $q->params->splat[0];
+            $file  = $q->params->file;
+            $ext   = $q->params->ext;
+
+            return "{$file}.{$ext} found in {$splat}";
+        });
+
+        $quest->run();
+
+        $this->expectOutputString("b.c found in a");
     }
 }

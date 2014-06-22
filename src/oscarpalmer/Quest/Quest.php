@@ -16,6 +16,16 @@ class Quest
     const VERSION = "1.0.0";
 
     /**
+     * @var array Array of route patterns.
+     */
+    protected $patterns = array("/\A\/*/", "/\/*\z/", "/\//", "/\./", "/\((.*?)\)/", "/\*/", "/\:(\w+)/");
+
+    /**
+     * @var array Array of route replacements for patterns.
+     */
+    protected $replacements = array("/", "/?", "\/", "\.", "(?:\\1)?", "(.*?)", "(\w+)");
+
+    /**
      * @var array Array of error callbacks.
      */
     protected $errors;
@@ -24,6 +34,11 @@ class Quest
      * @var array Array of filters.
      */
     protected $filters;
+
+    /**
+     * @var array Array of various parameters.
+     */
+    protected $params;
 
     /**
      * @var Request Shelf Request object.
@@ -107,6 +122,23 @@ class Quest
     }
 
     /**
+     * Get or set the content type.
+     *
+     * @param  null|string  $value Content type; null if getting the content type.
+     * @return Quest|string Content type as a string or Quest if content type was set.
+     */
+    public function contentType($value = null)
+    {
+        if (is_null($value)) {
+            return $this->response->getHeader("content-type");
+        }
+
+        $this->response->setHeader("content-type", $value);
+
+        return $this;
+    }
+
+    /**
      * Add a DELETE route.
      *
      * @param  string   $path     Path for route.
@@ -178,6 +210,24 @@ class Quest
     }
 
     /**
+     * Get or set a header.
+     *
+     * @param  string       $header Header name.
+     * @param  null|string  $value  Value for header; null if getting a header.
+     * @return Quest|string Value for header or Quest if header was set.
+     */
+    public function header($header, $value = null)
+    {
+        if (is_null($value)) {
+            return $this->response->getHeader($header);
+        }
+
+        $this->response->setHeader($header, $value);
+
+        return $this;
+    }
+
+    /**
      * Add a POST route.
      *
      * @param  string   $path     Path for route.
@@ -223,11 +273,22 @@ class Quest
     }
 
     /**
-     * Run the callback and finish the response.
+     * Run the filter and route callbacks and finish the response.
      */
     public function run()
     {
-        $this->callback();
+        try {
+            ob_start();
+
+            $this->router($this->filters["before"]);
+            $this->router($this->routes, true);
+        } catch (Exception\Halt $exception) {
+            $this->response->write($exception->getMessage());
+            $this->router($this->filters["after"]);
+
+            ob_end_clean();
+        }
+
         $this->response->finish($this->request);
     }
 
@@ -263,46 +324,6 @@ class Quest
     }
 
     /**
-     * Run the router and write the halted message to the response body.
-     */
-    protected function callback()
-    {
-        ob_start();
-
-        try {
-            $this->filter("before");
-            $this->router();
-        } catch (Exception\Halt $exception) {
-            $this->response->write($exception->getMessage());
-            $this->filter("after");
-        }
-
-        ob_end_clean();
-    }
-
-    /**
-     * Run a filter callback.
-     *
-     * @param string $name Name for filter.
-     */
-    protected function filter($name)
-    {
-        foreach ($this->filters[$name] as $filter) {
-            $regex = static::pathToRegex($filter->path);
-
-            if (preg_match($regex, $this->request->path_info, $params)) {
-                array_shift($params);
-
-                $params[] = $this;
-
-                $returned = call_user_func_array($filter->callback, $params);
-
-                $this->response->write($returned);
-            }
-        }
-    }
-
-    /**
      * Run a user defined or default error callback.
      *
      * @param int $status Status code for error.
@@ -319,45 +340,68 @@ class Quest
     }
 
     /**
-     * Loop the routes and run the callback for the first match, or serve an error response.
-     */
-    protected function router()
-    {
-        $method = $this->request->request_method;
-        $path = $this->request->path_info;
-
-        foreach ($this->routes as $route) {
-            if (in_array($method, $route->methods)) {
-                $regex = static::pathToRegex($route->path);
-
-                if (preg_match($regex, $path, $params)) {
-                    array_shift($params);
-
-                    $params[] = $this;
-
-                    $returned = call_user_func_array($route->callback, $params);
-
-                    throw new Exception\Halt($returned);
-                }
-            }
-        }
-
-        return $this->errorCallback($method === "GET" ? 404 : 405);
-    }
-
-    /** Static functions. */
-
-    /**
      * Convert path to regex.
      *
      * @param  string $path Path to convert.
      * @return string Regex for path.
      */
-    protected static function pathToRegex($path)
+    protected function pathToRegex($path)
     {
-        $pattern = array("/\A\/*/", "/\/*\z/", "/\//", "/\./", "/\((.*?)\)/", "/\*/", "/\:(\w+)/");
-        $replace = array("/", "/?", "\/", "\.", "(?:\\1)?", "(.*?)", "(\w+)");
+        return "/\A" . preg_replace($this->patterns, $this->replacements, $path) . "\z/";
+    }
 
-        return "/\A" . preg_replace($pattern, $replace, $path) . "\z/";
+    /**
+     * Loop the routes and run the callback for the first match, or serve an error response.
+     */
+    protected function router($container, $routes = false)
+    {
+        $method = $this->request->request_method;
+        $path = $this->request->path_info;
+
+        foreach ($container as $item) {
+            if ($routes === false || in_array($method, $item->methods)) {
+                $regex = $this->pathToRegex($item->path);
+
+                if (preg_match($regex, $path, $params)) {
+                    $params = $this->setParameters($item->path, $regex, $params);
+
+                    $returned = call_user_func_array($item->callback, $params);
+
+                    if ($routes) {
+                        throw new Exception\Halt($returned);
+                    } else {
+                        $this->response->write($returned);
+                    }
+                }
+            }
+        }
+
+        if ($routes) {
+            return $this->errorCallback($method === "GET" ? 404 : 405);
+        }
+    }
+
+    /**
+     * Set global parameters based on route path, route regex, and route parameters.
+     */
+    protected function setParameters($route, $regex, $values)
+    {
+        array_shift($values);
+
+        preg_match_all("/(\:\w+|\*)/", $route, $keys);
+
+        foreach ($keys[0] as $index => $key) {
+            $key = str_replace(":", "", $key);
+
+            if ($key === "*") {
+                $this->params->splat[] = $values[$index];
+            } else {
+                $this->params->$key = $values[$index];
+            }
+        }
+
+        $values[] = $this;
+
+        return $values;
     }
 }

@@ -67,7 +67,7 @@ $quest->get("/*/:file.:ext", $callback);
 
 # optional parameters should be wrapped in parentheses;
 # the following route will therefore match both
-# /path/to/dir/file.extension and /path/to/dir
+# /path/to/dir/file.extension and /path/to/dir/file
 $quest->get("/*/:file(.:ext)", $callback);
 ```
 
@@ -105,6 +105,7 @@ $quest = new Quest($a, $b, $c);     # Optional parameters; array of routes, and 
 $quest::VERSION;                    # Current Quest version number.
 $quest->errors;                     # Array of error callbacks with status codes as keys.
 $quest->filters;                    # Array of filters with at most two children; "after" and "before".
+$quest->params;                     # Object of route parameters.
 $quest->request;                    # Shelf Request object.
 $quest->response;                   # Shelf Response object.
 $quest->routes;                     # Array of routes.
@@ -128,6 +129,10 @@ $quest->error($status, $callback);  # Add or run an error callback; will run an 
                                     # or default callback if no $callback is supplied.
                                     # $status must be an integer and valid status code and
                                     # $callback must be a callable if supplied.
+
+# Helper methods
+$quest->contentType($optional);     # Get or set the content type of the response.
+$quest->header($name, $optional);   # Get or set a response header.
 
 # Run method
 $quest->run();                      # Let the questing (routing) begin!
