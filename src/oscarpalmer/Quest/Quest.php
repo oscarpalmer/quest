@@ -391,17 +391,22 @@ class Quest
         preg_match_all("/(\:\w+|\*)/", $route, $keys);
 
         foreach ($keys[0] as $index => $key) {
-            $key = str_replace(":", "", $key);
+            $key = ltrim($key, ":");
+            $val = $values[$index];
+
+            if (is_null($val)) {
+                continue;
+            }
 
             if ($key === "*") {
-                $this->params->splat[] = $values[$index];
+                $this->params->splat[] = $val;
             } else {
-                $this->params->$key = $values[$index];
+                $this->params->$key = $val;
             }
         }
 
         $values[] = $this;
 
-        return $values;
+        return array_filter($values);
     }
 }
