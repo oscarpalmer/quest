@@ -13,7 +13,7 @@ class Quest
     /**
      * @var string Current version number.
      */
-    const VERSION = "1.1.1";
+    const VERSION = "1.1.2";
 
     /**
      * @var array Array of route patterns.
@@ -161,21 +161,21 @@ class Quest
      */
     public function error($status, $callback = null)
     {
-        if (is_int($status) === false) {
-            throw new \InvalidArgumentException("Status must be an integer, " . gettype($status) . " given.");
-        }
+        if (is_int($status)) {
+            if (is_null($callback) === false) {
+                if (is_callable($callback)) {
+                    $this->errors[$status] = $callback;
 
-        if (isset($callback)) {
-            if (is_callable($callback) === false) {
+                    return $this;
+                }
+
                 throw new \InvalidArgumentException("Callback must be a callable, " . gettype($callback) . " given.");
             }
 
-            $this->errors[$status] = $callback;
-
-            return $this;
+            return $this->errorCallback($status);
         }
 
-        return $this->errorCallback($status);
+        throw new \InvalidArgumentException("Status must be an integer, " . gettype($status) . " given.");
     }
 
     /**
@@ -392,7 +392,7 @@ class Quest
 
         foreach ($keys[0] as $index => $key) {
             $key = ltrim($key, ":");
-            $val = $values[$index];
+            $val = isset($values[$index]) ? $values[$index] : null;
 
             if (is_null($val)) {
                 continue;
@@ -407,6 +407,6 @@ class Quest
 
         $values[] = $this;
 
-        return array_filter($values);
+        return $values;
     }
 }

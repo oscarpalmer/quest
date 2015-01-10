@@ -22,7 +22,7 @@ Quest is available via Composer.
 {
   "require": {
     "oscarpalmer/quest": "1.1.*",
-    "oscarpalmer/shelf": "1.*"
+    "oscarpalmer/shelf": "1.2.*"
   }
 }
 ```

@@ -245,18 +245,19 @@ class QuestTest extends \PHPUnit_Framework_TestCase
      */
     public function testSetParameters()
     {
-        $quest = new Quest(array(), $this->regex_request);
+        $quest = new Quest(array(), new Request(array("REQUEST_URI" => "/splat/file")));
 
-        $quest->get("/*/:file.:ext", function ($x, $y, $z, $q) {
-            $splat = $q->params->splat[0];
-            $file  = $q->params->file;
-            $ext   = $q->params->ext;
+        $quest->get("/*/:file(.:ext)", function ($x, $y, $z) {
+            $splat = $z->params->splat[0];
+            $file  = $z->params->file;
 
-            return "{$file}.{$ext} found in {$splat}";
+            echo($z->params->file);
+
+            return "{$file} found in {$splat}";
         });
 
         $quest->run();
 
-        $this->expectOutputString("b.c found in a");
+        $this->expectOutputString("file found in splat");
     }
 }

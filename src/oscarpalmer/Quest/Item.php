@@ -43,14 +43,13 @@ class Item
      * Set callback if it's a callable.
      *
      * @param  callable $callback Callback to set.
-     * @return null
      */
     protected function setCallback($callback)
     {
         if (is_callable($callback)) {
             $this->callback = $callback;
 
-            return null;
+            return;
         }
 
         throw new \InvalidArgumentException("Callback must be a callable, " . gettype($callback) . " given.");
@@ -60,14 +59,13 @@ class Item
      * Set path if it's a string.
      *
      * @param  string $path Path to set.
-     * @return null
      */
     protected function setPath($path)
     {
         if (is_string($path)) {
             $this->path = "/" . trim($path, "/");
 
-            return null;
+            return;
         }
 
         throw new \InvalidArgumentException("Path must be a string, " . gettype($path) . " given.");
