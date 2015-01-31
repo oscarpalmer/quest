@@ -13,7 +13,7 @@ class Quest
     /**
      * @var string Current version number.
      */
-    const VERSION = "1.1.2";
+    const VERSION = "1.2.0";
 
     /**
      * @var array Array of route patterns.
