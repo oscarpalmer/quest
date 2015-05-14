@@ -177,16 +177,20 @@ class Quest
                     }
 
                     throw new \InvalidArgumentException(
-                        "Callback must be a callable, " .
+                        "Callback must be a callable, \"" .
                         gettype($callback) .
-                        " given."
+                        "\" given."
                     );
                 }
 
                 return $this->errorCallback($status);
             }
 
-            throw new \InvalidArgumentException("Status must be a callable or an integer, " . gettype($status) . " given.");
+            throw new \InvalidArgumentException(
+                "Status must be a callable or an integer, \"" .
+                gettype($status) .
+                "\" given."
+            );
         }
 
         return $this->errorCallback();
@@ -278,12 +282,16 @@ class Quest
     public function redirect($location, $status = 302)
     {
         if (is_string($location)) {
-            $this->response->setHeader("Location", $location);
+            $this->response->setHeader("location", $location);
 
             return $this->halt($status);
         }
 
-        throw new \InvalidArgumentException("Location must be a string, " . gettype($location) . " given.");
+        throw new \InvalidArgumentException(
+            "Location must be a string, \"" .
+            gettype($location) .
+            "\" given."
+        );
     }
 
     /**
