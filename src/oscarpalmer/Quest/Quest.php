@@ -358,10 +358,10 @@ class Quest
 
         $this->response->setStatus($status);
 
-        if (isset($this->errors["*"])) {
-            throw new Exception\Halt(call_user_func($this->errors["*"], $this));
-        } elseif (isset($this->errors[$status])) {
+        if (isset($this->errors[$status])) {
             throw new Exception\Halt(call_user_func($this->errors[$status], $this));
+        } elseif (isset($this->errors["*"])) {
+            throw new Exception\Halt(call_user_func($this->errors["*"], $this));
         } else {
             throw new Exception\Halt($this->response->getStatusMessage());
         }
