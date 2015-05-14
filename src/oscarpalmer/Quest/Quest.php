@@ -155,27 +155,41 @@ class Quest
     /**
      * Add or run an error callback.
      *
-     * @param  int      $status   Status code for error.
-     * @param  callable $callback Callback for error.
-     * @return Quest    Quest object for optional chaining.
+     * @param  callable|int|null $status   Status code or callback for error.
+     * @param  callable          $callback Callback for error.
+     * @return Quest             Quest object for optional chaining.
      */
-    public function error($status, $callback = null)
+    public function error($status = null, $callback = null)
     {
-        if (is_int($status)) {
-            if (is_null($callback) === false) {
-                if (is_callable($callback)) {
-                    $this->errors[$status] = $callback;
+        if (is_null($status) === false) {
+            if (is_callable($status)) {
+                $this->errors["*"] = $status;
 
-                    return $this;
-                }
-
-                throw new \InvalidArgumentException("Callback must be a callable, " . gettype($callback) . " given.");
+                return $this;
             }
 
-            return $this->errorCallback($status);
+            if (is_int($status)) {
+                if (is_null($callback) === false) {
+                    if (is_callable($callback)) {
+                        $this->errors[$status] = $callback;
+
+                        return $this;
+                    }
+
+                    throw new \InvalidArgumentException(
+                        "Callback must be a callable, " .
+                        gettype($callback) .
+                        " given."
+                    );
+                }
+
+                return $this->errorCallback($status);
+            }
+
+            throw new \InvalidArgumentException("Status must be a callable or an integer, " . gettype($status) . " given.");
         }
 
-        throw new \InvalidArgumentException("Status must be an integer, " . gettype($status) . " given.");
+        return $this->errorCallback();
     }
 
     /**
@@ -328,11 +342,17 @@ class Quest
      *
      * @param int $status Status code for error.
      */
-    protected function errorCallback($status)
+    protected function errorCallback($status = "*")
     {
+        if ($status === "*") {
+            $status = 500;
+        }
+
         $this->response->setStatus($status);
 
-        if (isset($this->errors[$status])) {
+        if (isset($this->errors["*"])) {
+            throw new Exception\Halt(call_user_func($this->errors["*"], $this));
+        } elseif (isset($this->errors[$status])) {
             throw new Exception\Halt(call_user_func($this->errors[$status], $this));
         } else {
             throw new Exception\Halt($this->response->getStatusMessage());

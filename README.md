@@ -126,8 +126,8 @@ $quest->put($path, $callback);      # Add a PUT route.
 
 # Error method
 $quest->error($status, $callback);  # Add or run an error callback; will run an already defined
-                                    # or default callback if no $callback is supplied.
-                                    # $status must be an integer and valid status code and
+                                    # (wildcard first!) or default callback if no $callback is supplied.
+                                    # $status can be a valid status code, a callable, or null (wildcard error).
                                     # $callback must be a callable if supplied.
 
 # Helper methods
