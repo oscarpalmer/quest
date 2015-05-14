@@ -52,7 +52,11 @@ class Item
             return;
         }
 
-        throw new \InvalidArgumentException("Callback must be a callable, " . gettype($callback) . " given.");
+        throw new \InvalidArgumentException(
+            "Callback must be a callable, \"" .
+            gettype($callback) .
+            "\" given."
+        );
     }
 
     /**
@@ -68,6 +72,10 @@ class Item
             return;
         }
 
-        throw new \InvalidArgumentException("Path must be a string, " . gettype($path) . " given.");
+        throw new \InvalidArgumentException(
+            "Path must be a string, \"" .
+            gettype($path) .
+            "\" given."
+        );
     }
 }

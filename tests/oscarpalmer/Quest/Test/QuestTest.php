@@ -94,6 +94,24 @@ class QuestTest extends \PHPUnit_Framework_TestCase
         session_destroy();
     }
 
+    public function testWildcardError()
+    {
+        $quest = new Quest(array(), new Request($this->simple));
+        $quest->error(function () { return "Custom error."; });
+
+        foreach (array(404, 500, null) as $status) {
+            try {
+                $quest->error($status);
+            } catch (Halt $e) {
+                $this->assertNotNull($e);
+                $this->assertInstanceOf("oscarpalmer\Quest\Exception\Halt", $e);
+                $this->assertSame("Custom error.", $e->getMessage());
+            }
+        }
+
+        session_destroy();
+    }
+
     public function testBadErrors()
     {
         $quest = new Quest(array(), new Request($this->simple));
