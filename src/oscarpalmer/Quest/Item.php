@@ -53,7 +53,7 @@ class Item
         }
 
         throw new \InvalidArgumentException(
-            "Callback must be a callable, \"" .
+            "Callback must be of type \"callable\", \"" .
             gettype($callback) .
             "\" given."
         );
@@ -73,7 +73,7 @@ class Item
         }
 
         throw new \InvalidArgumentException(
-            "Path must be a string, \"" .
+            "Path must be of type \"string\", \"" .
             gettype($path) .
             "\" given."
         );

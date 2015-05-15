@@ -177,7 +177,7 @@ class Quest
                     }
 
                     throw new \InvalidArgumentException(
-                        "Callback must be a callable, \"" .
+                        "Callback must be of type \"callable\", \"" .
                         gettype($callback) .
                         "\" given."
                     );
@@ -187,7 +187,7 @@ class Quest
             }
 
             throw new \InvalidArgumentException(
-                "Status must be a callable or an integer, \"" .
+                "Status must be of type \"callable\" or \"integer\", \"" .
                 gettype($status) .
                 "\" given."
             );
@@ -288,7 +288,7 @@ class Quest
         }
 
         throw new \InvalidArgumentException(
-            "Location must be a string, \"" .
+            "Location must be of type \"string\", \"" .
             gettype($location) .
             "\" given."
         );
