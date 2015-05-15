@@ -350,12 +350,8 @@ class Quest
      *
      * @param int $status Status code for error.
      */
-    protected function errorCallback($status = "*")
+    protected function errorCallback($status = 500)
     {
-        if ($status === "*") {
-            $status = 500;
-        }
-
         $this->response->setStatus($status);
 
         if (isset($this->errors[$status])) {
