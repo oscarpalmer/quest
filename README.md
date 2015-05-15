@@ -55,7 +55,7 @@ There are three kinds of routing parameters that'll make working with complex ro
 - `:param`: matches any word character; i.e `\w+`.
 - `(anything)`: optional match for `anything`; i.e. `(anything)?`.
 
-### Examples
+### Examples of routes
 
 ```php
 # the following route will match /a/simple/path
@@ -74,6 +74,21 @@ $quest->get("/*/:file(.:ext)", $callback);
 ### Callbacks
 
 Echoes are captured and flushed. Please use return statements to output stuff.
+
+### Error handlers
+
+Having an error handler ready for when you or the user hits a bump is always useful. Status-specific handlers takes precedence over the wildcard handler, which in turn take precedence over the default handlers.
+
+```php
+# Calling handlers
+$quest->error();    # The error-handler defaults to 500.
+$quest->error(401); # You can choose the error, too.
+
+# Defining handlers
+$quest->error(function () {});      # A wildcard-error; matches all errors
+                                    # unless a defined handler already exists.
+$quest->error(401, function () {}); # Status-specific errors are possible, too.
+```
 
 ### Server stuff
 
