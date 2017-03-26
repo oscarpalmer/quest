@@ -1,6 +1,6 @@
 # Quest
 
-[![PHP version](https://badge.fury.io/ph/oscarpalmer%2Fquest.png)](http://badge.fury.io/ph/oscarpalmer%2Fquest) [![Build Status](https://travis-ci.org/oscarpalmer/quest.png?branch=master)](https://travis-ci.org/oscarpalmer/quest) [![Coverage Status](https://coveralls.io/repos/oscarpalmer/quest/badge.png?branch=master)](https://coveralls.io/r/oscarpalmer/quest?branch=master)
+[![PHP version](https://badge.fury.io/ph/oscarpalmer%2Fquest.svg)](http://badge.fury.io/ph/oscarpalmer%2Fquest) [![Build Status](https://travis-ci.org/oscarpalmer/quest.png?branch=master)](https://travis-ci.org/oscarpalmer/quest) [![Coverage Status](https://codecov.io/gh/oscarpalmer/quest/branch/master/graph/badge.svg)](https://coveralls.io/r/oscarpalmer/quest?branch=master)
 
 Quest is a router for PHP `>=5.3`.
 
@@ -8,9 +8,7 @@ Quest is a router for PHP `>=5.3`.
 
 > In particular, questing heroes of all stripes seek after the fabled Daedric artifacts for their potent combat and magical benefits.
 
-&mdash; Haderus of Gottlesfont, [Modern Heretics](http://uesp.net/wiki/Lore:Modern_Heretics).
-
-Quests are cool. I like quests and questing.
+&mdash; Haderus of Gottlesfont, _[Modern Heretics](http://uesp.net/wiki/Lore:Modern_Heretics)_
 
 ## Getting started
 
