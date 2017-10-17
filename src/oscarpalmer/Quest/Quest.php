@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace oscarpalmer\Quest;
 
 use oscarpalmer\Shelf\Request;
@@ -13,47 +15,47 @@ class Quest
     /**
      * @var string Current version number.
      */
-    const VERSION = "1.3.0";
+    const VERSION = "1.4.0";
 
     /**
      * @var array Array of route patterns.
      */
-    protected $patterns = array("/\A\/*/", "/\/*\z/", "/\//", "/\./", "/\((.*?)\)/", "/\*/", "/\:(\w+)/");
+    protected $patterns = ["/\A\/*/", "/\/*\z/", "/\//", "/\./", "/\((.*?)\)/", "/\*/", "/\:(\w+)/"];
 
     /**
      * @var array Array of route replacements for patterns.
      */
-    protected $replacements = array("/", "/?", "\/", "\.", "(?:\\1)?", "(.*?)", "(\w+)");
+    protected $replacements = ["/", "/?", "\/", "\.", "(?:\\1)?", "(.*?)", "(\w+)"];
 
     /**
      * @var array Array of error callbacks.
      */
-    protected $errors;
+    protected $errors = null;
 
     /**
      * @var array Array of filters.
      */
-    protected $filters;
+    protected $filters = null;
 
     /**
      * @var array Array of various parameters.
      */
-    protected $params;
+    protected $params = null;
 
     /**
      * @var Request Shelf Request object.
      */
-    protected $request;
+    protected $request = null;
 
     /**
      * @var Response Shelf Response object.
      */
-    protected $response;
+    protected $response = null;
 
     /**
      * @var array Array of routes.
      */
-    protected $routes;
+    protected $routes = null;
 
     /**
      * Create a new Quest object from an array of routes and Shelf objects;
@@ -64,12 +66,12 @@ class Quest
      * @param Response $response Shelf Response object.
      */
     public function __construct(
-        array $routes = array(),
+        array $routes = [],
         Request $request = null,
         Response $response = null
     ) {
-        $this->errors = array();
-        $this->filters = array("after" => array(), "before" => array());
+        $this->errors = [];
+        $this->filters = ["after" => [], "before" => []];
         $this->routes = $routes;
 
         $this->request = $request ?: Request::fromGlobals();
@@ -100,7 +102,7 @@ class Quest
      * @param  mixed $callback Callback for filter; null if no path is supplied.
      * @return Quest Quest object for optional chaining.
      */
-    public function after($path, $callback = null)
+    public function after($path, $callback = null): Quest
     {
         $this->addFilter("after", $path, $callback);
 
@@ -114,7 +116,7 @@ class Quest
      * @param  mixed $callback Callback for filter; null if no path is supplied.
      * @return Quest Quest object for optional chaining.
      */
-    public function before($path, $callback = null)
+    public function before($path, $callback = null): Quest
     {
         $this->addFilter("before", $path, $callback);
 
@@ -145,7 +147,7 @@ class Quest
      * @param  callable $callback Callback for route.
      * @return Quest    Quest object for optional chaining.
      */
-    public function delete($path, $callback)
+    public function delete($path, $callback): Quest
     {
         $this->addRoute("DELETE", $path, $callback);
 
@@ -157,7 +159,7 @@ class Quest
      *
      * @param  callable|int|null $status   Status code or callback for error.
      * @param  callable          $callback Callback for error.
-     * @return Quest             Quest object for optional chaining.
+     * @return mixed             Quest object for optional chaining.
      */
     public function error($status = null, $callback = null)
     {
@@ -203,9 +205,9 @@ class Quest
      * @param  callable $callback Callback for route.
      * @return Quest    Quest object for optional chaining.
      */
-    public function get($path, $callback)
+    public function get($path, $callback): Quest
     {
-        $this->addRoute(array("GET", "HEAD"), $path, $callback);
+        $this->addRoute(["GET", "HEAD"], $path, $callback);
 
         return $this;
     }
@@ -252,7 +254,7 @@ class Quest
      * @param  callable $callback Callback for route.
      * @return Quest    Quest object for optional chaining.
      */
-    public function post($path, $callback)
+    public function post($path, $callback): Quest
     {
         $this->addRoute("POST", $path, $callback);
 
@@ -266,7 +268,7 @@ class Quest
      * @param  callable $callback Callback for route.
      * @return Quest    Quest object for optional chaining.
      */
-    public function put($path, $callback)
+    public function put($path, $callback): Quest
     {
         $this->addRoute("PUT", $path, $callback);
 
@@ -317,7 +319,8 @@ class Quest
     /** Protected functions. */
 
     /**
-     * Add a filter with an optional path.
+     * Add a new Filter object with an optional
+     * path to the filters array.
      *
      * @param string $type     Type of filter.
      * @param mixed  $path     Path for filter; callback if no path is supplied.
@@ -330,11 +333,11 @@ class Quest
             $path = "*";
         }
 
-        $this->filters[$type][] = new Item(array(), $path, $callback);
+        $this->filters[$type][] = new Items\Filter([], $path, $callback);
     }
 
     /**
-     * Add a new Item object to the routes array.
+     * Add a new Route object to the routes array.
      *
      * @param mixed    $method   Request method for route.
      * @param string   $path     Path for route.
@@ -342,7 +345,7 @@ class Quest
      */
     protected function addRoute($method, $path, $callback)
     {
-        $this->routes[] = new Item((array) $method, $path, $callback);
+        $this->routes[] = new Items\Route((array) $method, $path, $callback);
     }
 
     /**
@@ -369,7 +372,7 @@ class Quest
      * @param  string $path Path to convert.
      * @return string Regex for path.
      */
-    protected function pathToRegex($path)
+    protected function pathToRegex($path): string
     {
         return "/\A" . preg_replace($this->patterns, $this->replacements, $path) . "\z/";
     }

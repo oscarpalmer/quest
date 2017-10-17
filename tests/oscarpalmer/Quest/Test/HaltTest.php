@@ -4,7 +4,7 @@ namespace oscarpalmer\Quest\Test;
 
 use oscarpalmer\Quest\Exception\Halt;
 
-class HaltTest extends \PHPUnit_Framework_TestCase
+class HaltTest extends \PHPUnit\Framework\TestCase
 {
     public function testConstructor()
     {

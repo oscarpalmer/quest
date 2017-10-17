@@ -1,6 +1,6 @@
 <?php
 
-namespace oscarpalmer\Quest;
+namespace oscarpalmer\Quest\Items;
 
 /**
  * Item class.
@@ -10,17 +10,17 @@ class Item
     /**
      * @var callable Callback for item.
      */
-    public $callback;
+    public $callback = null;
 
     /**
      * @var array Request method(s) for item.
      */
-    public $methods;
+    public $methods = null;
 
     /**
      * @var string Path for item.
      */
-    public $path;
+    public $path = null;
 
     /**
      * Create a new Item object from request method(s), path, and callback.
