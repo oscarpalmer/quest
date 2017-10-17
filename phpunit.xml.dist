@@ -2,12 +2,12 @@
 <phpunit bootstrap="tests/bootstrap.php">
   <testsuites>
     <testsuite name="Quest Test Suite">
-      <directory>tests/oscarpalmer/Quest</directory>
+      <directory>tests/oscarpalmer</directory>
     </testsuite>
   </testsuites>
   <filter>
     <whitelist>
-      <directory suffix=".php">src/oscarpalmer/Quest</directory>
+      <directory suffix=".php">src/oscarpalmer</directory>
     </whitelist>
   </filter>
 </phpunit>

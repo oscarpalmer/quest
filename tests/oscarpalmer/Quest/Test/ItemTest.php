@@ -2,21 +2,21 @@
 
 namespace oscarpalmer\Quest\Test;
 
-use oscarpalmer\Quest\Item;
+use oscarpalmer\Quest\Items\Item;
 
-class ItemTest extends \PHPUnit_Framework_TestCase
+class ItemTest extends \PHPUnit\Framework\TestCase
 {
     public function testConstructor()
     {
         $route = new Item(array("GET"), "/", function () {});
 
         $this->assertNotNull($route);
-        $this->assertInstanceOf("oscarpalmer\Quest\Item", $route);
+        $this->assertInstanceOf("oscarpalmer\Quest\Items\Item", $route);
     }
 
     /**
-     * @covers oscarpalmer\Quest\Item::setCallback
-     * @covers oscarpalmer\Quest\Item::setPath
+     * @covers oscarpalmer\Quest\Items\Item::setCallback
+     * @covers oscarpalmer\Quest\Items\Item::setPath
      */
     public function testSetProperties()
     {

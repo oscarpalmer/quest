@@ -3,11 +3,13 @@
 namespace oscarpalmer\Quest\Test;
 
 use oscarpalmer\Quest\Quest;
-use oscarpalmer\Quest\Item;
+use oscarpalmer\Quest\Items\Item;
+use oscarpalmer\Quest\Items\Filter;
+use oscarpalmer\Quest\Items\Route;
 use oscarpalmer\Quest\Exception\Halt;
 use oscarpalmer\Shelf\Request;
 
-class QuestTest extends \PHPUnit_Framework_TestCase
+class QuestTest extends \PHPUnit\Framework\TestCase
 {
     protected $regex;
     protected $routes;
@@ -19,10 +21,10 @@ class QuestTest extends \PHPUnit_Framework_TestCase
         $this->simple = array("REQUEST_URI" => "/");
 
         $this->routes = array(
-            new Item(array("GET"), "/", function () {
+            new Route(array("GET"), "/", function () {
                 return "index";
             }),
-            new Item(array("GET"), "/*/:b.:c", function () {
+            new Route(array("GET"), "/*/:b.:c", function () {
                 return "a/b.c";
             })
         );
@@ -34,8 +36,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
 
         $this->assertNotNull($quest);
         $this->assertInstanceOf("oscarpalmer\Quest\Quest", $quest);
-
-        session_destroy();
     }
 
     /**
@@ -51,8 +51,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
         $this->assertInternalType("array", $quest->filters);
         $this->assertInternalType("array", $quest->routes);
         $this->assertNull($quest->not_a_property);
-
-        session_destroy();
     }
 
     /**
@@ -74,8 +72,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
 
         $this->assertInternalType("array", $quest->routes);
         $this->assertCount(4, $quest->routes);
-
-        session_destroy();
     }
 
     public function testCustomError()
@@ -90,8 +86,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
             $this->assertInstanceOf("oscarpalmer\Quest\Exception\Halt", $e);
             $this->assertSame("Custom error.", $e->getMessage());
         }
-
-        session_destroy();
     }
 
     public function testWildcardError()
@@ -108,8 +102,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
                 $this->assertSame("Custom error.", $e->getMessage());
             }
         }
-
-        session_destroy();
     }
 
     public function testBadErrors()
@@ -127,8 +119,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
                 $this->assertInstanceOf("InvalidArgumentException", $e);
             }
         }
-
-        session_destroy();
     }
 
     public function testBadFilters()
@@ -146,8 +136,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
                 $this->assertInstanceOf("InvalidArgumentException", $e);
             }
         }
-
-        session_destroy();
     }
 
     /**
@@ -161,8 +149,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
         $quest->run();
 
         $this->expectOutputString("404 Not Found");
-
-        session_destroy();
     }
 
     /**
@@ -182,8 +168,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
         $quest->run();
 
         $this->expectOutputString("before path_before a/b.c after");
-
-        session_destroy();
     }
 
     public function testHalt()
@@ -197,8 +181,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
         $quest->run();
 
         $this->expectOutputString("406 Not Acceptable");
-
-        session_destroy();
     }
 
     public function testHaltCustom()
@@ -212,8 +194,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
         $quest->run();
 
         $this->expectOutputString("Boo!");
-
-        session_destroy();
     }
 
     public function testHeaders()
@@ -225,8 +205,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
 
         $quest->contentType("special/quest");
         $this->assertSame($quest->contentType(), "special/quest");
-
-        session_destroy();
     }
 
     public function testRedirect()
@@ -241,8 +219,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
 
             $this->assertSame("302 Found", $e->getMessage());
         }
-
-        session_destroy();
     }
 
     public function testRedirectError()
@@ -255,8 +231,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
             $this->assertNotNull($e);
             $this->assertInstanceOf("InvalidArgumentException", $e);
         }
-
-        session_destroy();
     }
 
     /**
@@ -270,8 +244,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
         $quest->run();
 
         $this->expectOutputString("a/b.c");
-
-        session_destroy();
     }
 
     /**
@@ -284,8 +256,6 @@ class QuestTest extends \PHPUnit_Framework_TestCase
         $quest->run();
 
         $this->expectOutputString("index");
-
-        session_destroy();
     }
 
     /**
@@ -307,7 +277,5 @@ class QuestTest extends \PHPUnit_Framework_TestCase
         $quest->run();
 
         $this->expectOutputString("file found in splat");
-
-        session_destroy();
     }
 }

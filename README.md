@@ -2,7 +2,7 @@
 
 [![PHP version](https://badge.fury.io/ph/oscarpalmer%2Fquest.svg)](http://badge.fury.io/ph/oscarpalmer%2Fquest) [![Build Status](https://travis-ci.org/oscarpalmer/quest.png?branch=master)](https://travis-ci.org/oscarpalmer/quest) [![Coverage Status](https://codecov.io/gh/oscarpalmer/quest/branch/master/graph/badge.svg)](https://coveralls.io/r/oscarpalmer/quest?branch=master)
 
-Quest is a router for PHP `>=5.3`.
+Quest is a router for PHP `>=7`.
 
 ## The name
 
@@ -14,13 +14,13 @@ Quest is a router for PHP `>=5.3`.
 
 ### Installation
 
-Quest is available via Composer.
+Quest is available via [Composer & Packagist](//packagist.org/packages/oscarpalmer/quest).
 
 ```json
 {
   "require": {
-    "oscarpalmer/quest": "1.3.*",
-    "oscarpalmer/shelf": "1.4.*"
+    "oscarpalmer/quest": "1.4.*",
+    "oscarpalmer/shelf": "1.5.*"
   }
 }
 ```
@@ -112,49 +112,45 @@ try_files $uri /index.php;
 ```php
 # Constructor
 $quest = new Quest($a, $b, $c);     # Optional parameters; array of routes, and Request
-                                    # and Response objects from Shelf; useful for testing.
+                                    # and Response objects from Shelf; useful for testing
 
 # Constants and properties
-$quest::VERSION;                    # Current Quest version number.
-$quest->errors;                     # Array of error callbacks with status codes as keys.
-$quest->filters;                    # Array of filters with at most two children; "after" and "before".
-$quest->params;                     # Object of route parameters.
-$quest->request;                    # Shelf Request object.
-$quest->response;                   # Shelf Response object.
-$quest->routes;                     # Array of routes.
+$quest::VERSION;                    # Current Quest version number
+$quest->errors;                     # Array of error callbacks with status codes as keys
+$quest->filters;                    # Array of filters with at most two children; "after" and "before"
+$quest->params;                     # Object of route parameters
+$quest->request;                    # Shelf Request object
+$quest->response;                   # Shelf Response object
+$quest->routes;                     # Array of routes
 
 # Filter methods
-$quest->after($callback);           # Add an after filter without a path to run after routing.
-$quest->after($path, $callback);    # Add an after filter with a path to run after routing.
-$quest->before($callback);          # Add an after filter without a path to run after routing.
-$quest->before($path, $callback);   # Add a before filter with a path to run before routing.
-                                    # $path must be a string, and $callback must be a callable.
+$quest->after($callback);           # Add an after filter without a path to run after routing
+$quest->after($path, $callback);    # Add an after filter with a path to run after routing
+$quest->before($callback);          # Add an after filter without a path to run after routing
+$quest->before($path, $callback);   # Add a before filter with a path to run before routing
+                                    # $path must be a string, and $callback must be a callable
 
 # Route methods
 $quest->delete($path, $callback);   # Add a DELETE route;
-$quest->get($path, $callback);      # Add a GET (and HEAD) route.
-$quest->post($path, $callback);     # Add a POST route.
-$quest->put($path, $callback);      # Add a PUT route.
-                                    # $path must be a string and $callback must be a callable.
+$quest->get($path, $callback);      # Add a GET (and HEAD) route
+$quest->post($path, $callback);     # Add a POST route
+$quest->put($path, $callback);      # Add a PUT route
+                                    # $path must be a string and $callback must be a callable
 
 # Error method
 $quest->error($status, $callback);  # Add or run an error callback; will run an already defined
-                                    # or default callback if no $callback is supplied.
-                                    # $status can be a valid status code, a callable, or null (wildcard error).
-                                    # $callback must be a callable if supplied.
+                                    # or default callback if no $callback is supplied
+                                    # $status can be a valid status code, a callable, or null (wildcard error)
+                                    # $callback must be a callable if supplied
 
 # Helper methods
-$quest->contentType($optional);     # Get or set the content type of the response.
-$quest->header($name, $optional);   # Get or set a response header.
+$quest->contentType($optional);     # Get or set the content type of the response
+$quest->header($name, $optional);   # Get or set a response header
 
 # Run method
 $quest->run();                      # Let the questing (routing) begin!
-                                    # Will run filters and the first matching route's callback.
+                                    # Will run filters and the first matching route's callback
 ```
-
-## Todo
-
-- Helper methods.
 
 ## License
 
