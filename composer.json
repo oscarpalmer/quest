@@ -19,7 +19,7 @@
   "license": "MIT",
   "name": "oscarpalmer/quest",
   "require": {
-    "oscarpalmer/shelf": "1.5.*",
+    "oscarpalmer/shelf": "2.0.*",
     "php": ">=7.0"
   },
   "require-dev": {

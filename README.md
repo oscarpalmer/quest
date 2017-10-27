@@ -19,8 +19,8 @@ Quest is available via [Composer & Packagist](//packagist.org/packages/oscarpalm
 ```json
 {
   "require": {
-    "oscarpalmer/quest": "1.4.*",
-    "oscarpalmer/shelf": "1.5.*"
+    "oscarpalmer/quest": "2.0.*",
+    "oscarpalmer/shelf": "2.0.*"
   }
 }
 ```
