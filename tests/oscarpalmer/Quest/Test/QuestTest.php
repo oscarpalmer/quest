@@ -17,17 +17,17 @@ class QuestTest extends \PHPUnit\Framework\TestCase
 
     public function setUp()
     {
-        $this->regex = array("REQUEST_URI" => "/a/b.c");
-        $this->simple = array("REQUEST_URI" => "/");
+        $this->regex = ["REQUEST_URI" => "/a/b.c"];
+        $this->simple = ["REQUEST_URI" => "/"];
 
-        $this->routes = array(
-            new Route(array("GET"), "/", function () {
+        $this->routes = [
+            new Route(["GET"], "/", function () {
                 return "index";
             }),
-            new Route(array("GET"), "/*/:b.:c", function () {
+            new Route(["GET"], "/*/:b.:c", function () {
                 return "a/b.c";
             })
-        );
+        ];
     }
 
     public function testConstructor()
@@ -54,7 +54,6 @@ class QuestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers oscarpalmer\Quest\Quest::addRoute
      * @covers oscarpalmer\Quest\Quest::delete
      * @covers oscarpalmer\Quest\Quest::get
      * @covers oscarpalmer\Quest\Quest::post
@@ -76,7 +75,7 @@ class QuestTest extends \PHPUnit\Framework\TestCase
 
     public function testCustomError()
     {
-        $quest = new Quest(array(), new Request($this->simple));
+        $quest = new Quest([], new Request($this->simple));
         $quest->error(404, function () { return "Custom error."; });
 
         try {
@@ -88,56 +87,6 @@ class QuestTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    public function testWildcardError()
-    {
-        $quest = new Quest(array(), new Request($this->simple));
-        $quest->error(function () { return "Custom error."; });
-
-        foreach (array(404, 500, null) as $status) {
-            try {
-                $quest->error($status);
-            } catch (Halt $e) {
-                $this->assertNotNull($e);
-                $this->assertInstanceOf("oscarpalmer\Quest\Exception\Halt", $e);
-                $this->assertSame("Custom error.", $e->getMessage());
-            }
-        }
-    }
-
-    public function testBadErrors()
-    {
-        $quest = new Quest(array(), new Request($this->simple));
-
-        foreach (array(
-            500 => "bad",
-            "bad" => function () {}
-        ) as $status => $callback) {
-            try {
-                $quest->error($status, $callback);
-            } catch (\Exception $e) {
-                $this->assertNotNull($e);
-                $this->assertInstanceOf("InvalidArgumentException", $e);
-            }
-        }
-    }
-
-    public function testBadFilters()
-    {
-        $quest = new Quest(array(), new Request($this->simple));
-
-        foreach (array(
-            "after" => null,
-            "before" => null
-        ) as $fn => $callback) {
-            try {
-                $quest->$fn($callback);
-            } catch (\Exception $e) {
-                $this->assertNotNull($e);
-                $this->assertInstanceOf("InvalidArgumentException", $e);
-            }
-        }
-    }
-
     /**
      * @covers oscarpalmer\Quest\Quest::errorCallback
      * @covers oscarpalmer\Quest\Quest::router
@@ -145,14 +94,13 @@ class QuestTest extends \PHPUnit\Framework\TestCase
      */
     public function testErrorRun()
     {
-        $quest = new Quest(array(), new Request($this->simple));
+        $quest = new Quest([], new Request($this->simple));
         $quest->run();
 
         $this->expectOutputString("404 Not Found");
     }
 
     /**
-     * @covers oscarpalmer\Quest\Quest::addFilter
      * @covers oscarpalmer\Quest\Quest::after
      * @covers oscarpalmer\Quest\Quest::before
      * @covers oscarpalmer\Quest\Quest::router
@@ -161,18 +109,20 @@ class QuestTest extends \PHPUnit\Framework\TestCase
     {
         $quest = new Quest($this->routes, new Request($this->regex));
 
-        $quest->after(function () { return " after"; });
-        $quest->before(function () { return "before "; });
-        $quest->before("/a/b.c", function () { return "path_before "; });
+        $quest->after("*", function () { return " after 1"; });
+        $quest->before("*", function () { return "before 1 "; });
+
+        $quest->after("/a/b.c", function () { return " after 2"; });
+        $quest->before("/a/b.c", function () { return "before 2 "; });
 
         $quest->run();
 
-        $this->expectOutputString("before path_before a/b.c after");
+        $this->expectOutputString("before 1 before 2 a/b.c after 1 after 2");
     }
 
     public function testHalt()
     {
-        $quest = new Quest(array(), new Request($this->simple));
+        $quest = new Quest([], new Request($this->simple));
 
         $quest->get("/", function ($quest) {
             $quest->halt(406);
@@ -185,7 +135,7 @@ class QuestTest extends \PHPUnit\Framework\TestCase
 
     public function testHaltCustom()
     {
-        $quest = new Quest(array(), new Request($this->simple));
+        $quest = new Quest([], new Request($this->simple));
 
         $quest->get("/", function ($quest) {
             $quest->halt(406, "Boo!");
@@ -198,7 +148,7 @@ class QuestTest extends \PHPUnit\Framework\TestCase
 
     public function testHeaders()
     {
-        $quest = new Quest(array(), new Request($this->simple));
+        $quest = new Quest([], new Request($this->simple));
 
         $quest->header("x-powered-by", "Quest!");
         $this->assertSame($quest->header("x-powered-by"), "Quest!");
@@ -209,7 +159,7 @@ class QuestTest extends \PHPUnit\Framework\TestCase
 
     public function testRedirect()
     {
-        $quest = new Quest(array(), new Request($this->simple));
+        $quest = new Quest([], new Request($this->simple));
 
         try {
             $quest->redirect("/a/b.c");
@@ -218,18 +168,6 @@ class QuestTest extends \PHPUnit\Framework\TestCase
             $this->assertInstanceOf("oscarpalmer\Quest\Exception\Halt", $e);
 
             $this->assertSame("302 Found", $e->getMessage());
-        }
-    }
-
-    public function testRedirectError()
-    {
-        $quest = new Quest(array(), new Request($this->simple));
-
-        try {
-            $quest->redirect(null);
-        } catch (\Exception $e) {
-            $this->assertNotNull($e);
-            $this->assertInstanceOf("InvalidArgumentException", $e);
         }
     }
 
@@ -259,17 +197,18 @@ class QuestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * @covers oscarpalmer\Quest\Quest::setParameter
      * @covers oscarpalmer\Quest\Quest::setParameters
      */
     public function testSetParameters()
     {
-        $quest = new Quest(array(), new Request(array("REQUEST_URI" => "/splat/file")));
+        $quest = new Quest([], new Request(["REQUEST_URI" => "/splat/file"]));
 
         $quest->get("/*/:file(.:ext)", function ($x, $y, $z) {
-            $splat = $z->params->splat[0];
-            $file  = $z->params->file;
+            $splat = $z->parameters->splat[0];
+            $file  = $z->parameters->file;
 
-            echo($z->params->file);
+            echo($z->parameters->file);
 
             return "{$file} found in {$splat}";
         });

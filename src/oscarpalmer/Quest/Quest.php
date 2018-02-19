@@ -15,17 +15,22 @@ class Quest
     /**
      * @var string Current version number.
      */
-    const VERSION = "2.0.0";
+    const VERSION = "2.1.0";
+
+    /**
+     * @var array Array of request methods for routes.
+     */
+    const REQUEST_METHODS = ["DELETE", "GET", "HEAD", "POST", "PUT"];
 
     /**
      * @var array Array of route patterns.
      */
-    protected $patterns = ["/\A\/*/", "/\/*\z/", "/\//", "/\./", "/\((.*?)\)/", "/\*/", "/\:(\w+)/"];
+    const ROUTE_PATTERNS = ["/\A\/*/", "/\/*\z/", "/\//", "/\./", "/\((.*?)\)/", "/\*/", "/\:(\w+)/"];
 
     /**
      * @var array Array of route replacements for patterns.
      */
-    protected $replacements = ["/", "/?", "\/", "\.", "(?:\\1)?", "(.*?)", "(\w+)"];
+    const ROUTE_REPLACEMENTS = ["/", "/?", "\/", "\.", "(?:\\1)?", "(.*?)", "(\w+)"];
 
     /**
      * @var array Array of error callbacks.
@@ -40,7 +45,7 @@ class Quest
     /**
      * @var array Array of various parameters.
      */
-    protected $params = null;
+    protected $parameters = null;
 
     /**
      * @var Request Shelf Request object.
@@ -74,6 +79,9 @@ class Quest
         $this->filters = ["after" => [], "before" => []];
         $this->routes = $routes;
 
+        $this->parameters = new \stdClass;
+        $this->parameters->splat = [];
+
         $this->request = $request ?: Request::fromGlobals();
         $this->response = $response ?: new Response;
     }
@@ -84,13 +92,9 @@ class Quest
      * @param  string $key Key to find.
      * @return mixed  Found value for property.
      */
-    public function __get($key)
+    public function __get(string $key)
     {
-        if (isset($this->$key)) {
-            return $this->$key;
-        }
-
-        return null;
+        return $this->$key ?? null;
     }
 
     /** Public functions. */
@@ -98,13 +102,13 @@ class Quest
     /**
      * Add a filter to run after routing.
      *
-     * @param  mixed $path     Path for filter; callback if no path is supplied.
-     * @param  mixed $callback Callback for filter; null if no path is supplied.
-     * @return Quest Quest object for optional chaining.
+     * @param  string   $path     Path for filter.
+     * @param  callable $callback Callback for filter.
+     * @return Quest    Quest object for optional chaining.
      */
-    public function after($path, $callback = null): Quest
+    public function after(string $path, callable $callback) : Quest
     {
-        $this->addFilter("after", $path, $callback);
+        $this->filters["after"][] = new Items\Filter(static::REQUEST_METHODS, $path, $callback);
 
         return $this;
     }
@@ -112,13 +116,13 @@ class Quest
     /**
      * Add a filter to run before routing.
      *
-     * @param  mixed $path     Path for filter; callback if no path is supplied.
-     * @param  mixed $callback Callback for filter; null if no path is supplied.
-     * @return Quest Quest object for optional chaining.
+     * @param  string   $path     Path for filter.
+     * @param  callable $callback Callback for filter.
+     * @return Quest    Quest object for optional chaining.
      */
-    public function before($path, $callback = null): Quest
+    public function before(string $path, callable $callback) : Quest
     {
-        $this->addFilter("before", $path, $callback);
+        $this->filters["before"][] = new Items\Filter(static::REQUEST_METHODS, $path, $callback);
 
         return $this;
     }
@@ -126,10 +130,10 @@ class Quest
     /**
      * Get or set the content type.
      *
-     * @param  null|string  $value Content type; null if getting the content type.
+     * @param  string       $value Content type; null if getting the content type.
      * @return Quest|string Content type as a string or Quest if content type was set.
      */
-    public function contentType($value = null)
+    public function contentType(string $value = null)
     {
         if (is_null($value)) {
             return $this->response->getHeader("content-type");
@@ -147,9 +151,9 @@ class Quest
      * @param  callable $callback Callback for route.
      * @return Quest    Quest object for optional chaining.
      */
-    public function delete($path, $callback): Quest
+    public function delete(string $path, callable $callback) : Quest
     {
-        $this->addRoute("DELETE", $path, $callback);
+        $this->routes[] = new Items\Route([static::REQUEST_METHODS[0]], $path, $callback);
 
         return $this;
     }
@@ -157,45 +161,19 @@ class Quest
     /**
      * Add or run an error callback.
      *
-     * @param  callable|int|null $status   Status code or callback for error.
-     * @param  callable          $callback Callback for error.
-     * @return mixed             Quest object for optional chaining.
+     * @param  int      $status   Status code or callback for error.
+     * @param  callable $callback Callback for error.
+     * @return mixed    Quest object for optional chaining.
      */
-    public function error($status = null, $callback = null)
+    public function error(int $status = 500, callable $callback = null)
     {
-        if (is_null($status) === false) {
-            if (is_callable($status)) {
-                $this->errors["*"] = $status;
-
-                return $this;
-            }
-
-            if (is_int($status)) {
-                if (is_null($callback) === false) {
-                    if (is_callable($callback)) {
-                        $this->errors[$status] = $callback;
-
-                        return $this;
-                    }
-
-                    throw new \InvalidArgumentException(
-                        "Callback must be of type \"callable\", \"" .
-                        gettype($callback) .
-                        "\" given."
-                    );
-                }
-
-                return $this->errorCallback($status);
-            }
-
-            throw new \InvalidArgumentException(
-                "Status must be of type \"callable\" or \"integer\", \"" .
-                gettype($status) .
-                "\" given."
-            );
+        if (is_null($callback)) {
+            return $this->errorCallback($status);
         }
 
-        return $this->errorCallback();
+        $this->errors[$status] = $callback;
+
+        return $this;
     }
 
     /**
@@ -205,9 +183,9 @@ class Quest
      * @param  callable $callback Callback for route.
      * @return Quest    Quest object for optional chaining.
      */
-    public function get($path, $callback): Quest
+    public function get(string $path, callable $callback) : Quest
     {
-        $this->addRoute(["GET", "HEAD"], $path, $callback);
+        $this->routes[] = new Items\Route([static::REQUEST_METHODS[1], static::REQUEST_METHODS[2]], $path, $callback);
 
         return $this;
     }
@@ -218,7 +196,7 @@ class Quest
      * @param int         $status  Status code for halted response.
      * @param null|scalar $message Message to display.
      */
-    public function halt($status, $message = null)
+    public function halt(int $status, $message = null)
     {
         if (is_null($message)) {
             return $this->errorCallback($status);
@@ -232,11 +210,11 @@ class Quest
     /**
      * Get or set a header.
      *
-     * @param  string       $header Header name.
-     * @param  null|string  $value  Value for header; null if getting a header.
-     * @return Quest|string Value for header or Quest if header was set.
+     * @param  string      $header Header name.
+     * @param  mixed       $value  Value for header; null if getting a header.
+     * @return Quest|mixed Value for header or Quest if a header was set.
      */
-    public function header($header, $value = null)
+    public function header(string $header, $value = null)
     {
         if (is_null($value)) {
             return $this->response->getHeader($header);
@@ -254,9 +232,9 @@ class Quest
      * @param  callable $callback Callback for route.
      * @return Quest    Quest object for optional chaining.
      */
-    public function post($path, $callback): Quest
+    public function post(string $path, callable $callback) : Quest
     {
-        $this->addRoute("POST", $path, $callback);
+        $this->routes[] = new Items\Route([static::REQUEST_METHODS[3]], $path, $callback);
 
         return $this;
     }
@@ -268,9 +246,9 @@ class Quest
      * @param  callable $callback Callback for route.
      * @return Quest    Quest object for optional chaining.
      */
-    public function put($path, $callback): Quest
+    public function put(string $path, callable $callback) : Quest
     {
-        $this->addRoute("PUT", $path, $callback);
+        $this->routes[] = new Items\Route([static::REQUEST_METHODS[4]], $path, $callback);
 
         return $this;
     }
@@ -279,21 +257,13 @@ class Quest
      * Redirection.
      *
      * @param string Where to end up.
-     * @param int    Valid status code for redirection.
+     * @param int    Status code for redirection.
      */
-    public function redirect($location, $status = 302)
+    public function redirect(string $location, int $status = 302)
     {
-        if (is_string($location)) {
-            $this->response->setHeader("location", $location);
+        $this->response->setHeader("location", $location);
 
-            return $this->halt($status);
-        }
-
-        throw new \InvalidArgumentException(
-            "Location must be of type \"string\", \"" .
-            gettype($location) .
-            "\" given."
-        );
+        return $this->halt($status);
     }
 
     /**
@@ -319,48 +289,16 @@ class Quest
     /** Protected functions. */
 
     /**
-     * Add a new Filter object with an optional
-     * path to the filters array.
-     *
-     * @param string $type     Type of filter.
-     * @param mixed  $path     Path for filter; callback if no path is supplied.
-     * @param mixed  $callback Callback for filter; null if no path is supplied.
-     */
-    protected function addFilter($type, $path, $callback)
-    {
-        if (is_null($callback)) {
-            $callback = $path;
-            $path = "*";
-        }
-
-        $this->filters[$type][] = new Items\Filter([], $path, $callback);
-    }
-
-    /**
-     * Add a new Route object to the routes array.
-     *
-     * @param mixed    $method   Request method for route.
-     * @param string   $path     Path for route.
-     * @param callable $callback Callback for route.
-     */
-    protected function addRoute($method, $path, $callback)
-    {
-        $this->routes[] = new Items\Route((array) $method, $path, $callback);
-    }
-
-    /**
      * Run a user defined or default error callback.
      *
      * @param int $status Status code for error.
      */
-    protected function errorCallback($status = 500)
+    protected function errorCallback(int $status = 500)
     {
         $this->response->setStatus($status);
 
         if (isset($this->errors[$status])) {
             throw new Exception\Halt(call_user_func($this->errors[$status], $this));
-        } elseif (isset($this->errors["*"])) {
-            throw new Exception\Halt(call_user_func($this->errors["*"], $this));
         } else {
             throw new Exception\Halt($this->response->getStatusMessage());
         }
@@ -372,27 +310,27 @@ class Quest
      * @param  string $path Path to convert.
      * @return string Regex for path.
      */
-    protected function pathToRegex($path): string
+    protected function pathToRegex(string $path) : string
     {
-        return "/\A" . preg_replace($this->patterns, $this->replacements, $path) . "\z/";
+        return "/\A" . preg_replace(static::ROUTE_PATTERNS, static::ROUTE_REPLACEMENTS, $path) . "\z/";
     }
 
     /**
      * Loop the routes and run the callback for the first match, or serve an error response.
+     *
+     * @param array $container Container for routing.
+     * @param bool  $routes    True if container contains routes.
      */
-    protected function router($container, $routes = false)
+    protected function router(array $container, bool $routes = false)
     {
-        $method = $this->request->request_method;
-        $path = $this->request->path_info;
-
         foreach ($container as $item) {
-            if ($routes === false || in_array($method, $item->methods)) {
-                $regex = $this->pathToRegex($item->path);
+            if (in_array($this->request->request_method, $item->getMethods())) {
+                $regex = $this->pathToRegex($item->getPath());
 
-                if (preg_match($regex, $path, $params)) {
-                    $params = $this->setParameters($item->path, $regex, $params);
+                if (preg_match($regex, $this->request->path_info, $parameters)) {
+                    $parameters = $this->setParameters($item->getPath(), $regex, $parameters);
 
-                    $returned = call_user_func_array($item->callback, $params);
+                    $returned = call_user_func_array($item->getCallback(), $parameters);
 
                     if ($routes) {
                         throw new Exception\Halt($returned);
@@ -404,32 +342,49 @@ class Quest
         }
 
         if ($routes) {
-            return $this->errorCallback($method === "GET" ? 404 : 405);
+            $this->errorCallback($this->request->request_method === "GET" ? 404 : 405);
         }
     }
 
     /**
-     * Set global parameters based on route path, route regex, and route parameters.
+     * Inspect one specific parameter and set it globally if possible.
+     *
+     * @param string $route Route for for parameter.
+     * @param string $key   Key for parameter.
+     * @param string $value Value for parameter.
      */
-    protected function setParameters($route, $regex, $values)
+    protected function setParameter(string $route, string $key, $value)
+    {
+        $key = ltrim($key, ":");
+
+        # Skip if key matches our route, if value is bad or value already exists in parameters
+        if (is_null($value) || $key === $route || in_array($value, $this->parameters->splat)) {
+            return;
+        }
+
+        if ($key === "*") {
+            $this->parameters->splat[] = $value;
+        } else {
+            $this->parameters->$key = $value;
+        }
+    }
+
+    /**
+     * Set global parameters based on path, regex, and parameters.
+     *
+     * @param  string $route  Route to base parameters on.
+     * @param  string $regex  Regex for route.
+     * @param  array  $values Array of route parameters.
+     * @return array  Updated array of parameters.
+     */
+    protected function setParameters(string $route, string $regex, array $values) : array
     {
         array_shift($values);
 
         preg_match_all("/(\:\w+|\*)/", $route, $keys);
 
         foreach ($keys[0] as $index => $key) {
-            $key = ltrim($key, ":");
-            $val = isset($values[$index]) ? $values[$index] : null;
-
-            if (is_null($val)) {
-                continue;
-            }
-
-            if ($key === "*") {
-                $this->params->splat[] = $val;
-            } else {
-                $this->params->$key = $val;
-            }
+            $this->setParameter($route, $key, $values[$index] ?? null);
         }
 
         $values[] = $this;

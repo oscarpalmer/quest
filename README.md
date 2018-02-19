@@ -19,8 +19,8 @@ Quest is available via [Composer & Packagist](//packagist.org/packages/oscarpalm
 ```json
 {
   "require": {
-    "oscarpalmer/quest": "2.0.*",
-    "oscarpalmer/shelf": "2.0.*"
+    "oscarpalmer/quest": "2.1.*",
+    "oscarpalmer/shelf": "2.2.*"
   }
 }
 ```
@@ -83,8 +83,6 @@ $quest->error();    # The error-handler defaults to 500.
 $quest->error(401); # You can choose the error, too.
 
 # Defining handlers
-$quest->error(function () {});      # A wildcard-error; matches all errors
-                                    # unless a defined handler already exists.
 $quest->error(401, function () {}); # Status-specific errors are possible, too.
 ```
 
@@ -118,15 +116,13 @@ $quest = new Quest($a, $b, $c);     # Optional parameters; array of routes, and 
 $quest::VERSION;                    # Current Quest version number
 $quest->errors;                     # Array of error callbacks with status codes as keys
 $quest->filters;                    # Array of filters with at most two children; "after" and "before"
-$quest->params;                     # Object of route parameters
+$quest->parameters;                 # Object of route parameters
 $quest->request;                    # Shelf Request object
 $quest->response;                   # Shelf Response object
 $quest->routes;                     # Array of routes
 
 # Filter methods
-$quest->after($callback);           # Add an after filter without a path to run after routing
 $quest->after($path, $callback);    # Add an after filter with a path to run after routing
-$quest->before($callback);          # Add an after filter without a path to run after routing
 $quest->before($path, $callback);   # Add a before filter with a path to run before routing
                                     # $path must be a string, and $callback must be a callable
 
@@ -140,7 +136,7 @@ $quest->put($path, $callback);      # Add a PUT route
 # Error method
 $quest->error($status, $callback);  # Add or run an error callback; will run an already defined
                                     # or default callback if no $callback is supplied
-                                    # $status can be a valid status code, a callable, or null (wildcard error)
+                                    # $status can be a valid status code or null (500 error);
                                     # $callback must be a callable if supplied
 
 # Helper methods
