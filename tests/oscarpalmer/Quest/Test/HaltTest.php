@@ -11,6 +11,6 @@ class HaltTest extends \PHPUnit\Framework\TestCase
         $halt = new Halt;
 
         $this->assertNotNull($halt);
-        $this->assertInstanceOf("oscarpalmer\Quest\Exception\Halt", $halt);
+        $this->assertInstanceOf('oscarpalmer\Quest\Exception\Halt', $halt);
     }
 }

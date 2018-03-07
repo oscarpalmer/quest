@@ -15,22 +15,17 @@ class Quest
     /**
      * @var string Current version number.
      */
-    const VERSION = "2.1.0";
-
-    /**
-     * @var array Array of request methods for routes.
-     */
-    const REQUEST_METHODS = ["DELETE", "GET", "HEAD", "POST", "PUT"];
+    const VERSION = '2.2.0';
 
     /**
      * @var array Array of route patterns.
      */
-    const ROUTE_PATTERNS = ["/\A\/*/", "/\/*\z/", "/\//", "/\./", "/\((.*?)\)/", "/\*/", "/\:(\w+)/"];
+    const ROUTE_PATTERNS = ['/\A\/*/', '/\/*\z/', '/\//', '/\./', '/\((.*?)\)/', '/\*/', '/\:(\w+)/'];
 
     /**
      * @var array Array of route replacements for patterns.
      */
-    const ROUTE_REPLACEMENTS = ["/", "/?", "\/", "\.", "(?:\\1)?", "(.*?)", "(\w+)"];
+    const ROUTE_REPLACEMENTS = ['/', '/?', '\/', '\.', '(?:\\1)?', '(.*?)', '(\w+)'];
 
     /**
      * @var array Array of error callbacks.
@@ -76,7 +71,7 @@ class Quest
         Response $response = null
     ) {
         $this->errors = [];
-        $this->filters = ["after" => [], "before" => []];
+        $this->filters = ['after' => [], 'before' => []];
         $this->routes = $routes;
 
         $this->parameters = new \stdClass;
@@ -94,7 +89,11 @@ class Quest
      */
     public function __get(string $key)
     {
-        return $this->$key ?? null;
+        if (isset($this->$key)) {
+            return $this->$key;
+        }
+
+        return $this->request->$key ?? null;
     }
 
     /** Public functions. */
@@ -108,7 +107,7 @@ class Quest
      */
     public function after(string $path, callable $callback) : Quest
     {
-        $this->filters["after"][] = new Items\Filter(static::REQUEST_METHODS, $path, $callback);
+        $this->filters['after'][] = new Items\Filter(Request::REQUEST_METHODS, $path, $callback);
 
         return $this;
     }
@@ -122,7 +121,7 @@ class Quest
      */
     public function before(string $path, callable $callback) : Quest
     {
-        $this->filters["before"][] = new Items\Filter(static::REQUEST_METHODS, $path, $callback);
+        $this->filters['before'][] = new Items\Filter(Request::REQUEST_METHODS, $path, $callback);
 
         return $this;
     }
@@ -136,10 +135,10 @@ class Quest
     public function contentType(string $value = null)
     {
         if (is_null($value)) {
-            return $this->response->getHeader("content-type");
+            return $this->response->getHeader('content-type');
         }
 
-        $this->response->setHeader("content-type", $value);
+        $this->response->setHeader('content-type', $value);
 
         return $this;
     }
@@ -153,7 +152,7 @@ class Quest
      */
     public function delete(string $path, callable $callback) : Quest
     {
-        $this->routes[] = new Items\Route([static::REQUEST_METHODS[0]], $path, $callback);
+        $this->routes[] = new Items\Route([Request::REQUEST_METHODS[0]], $path, $callback);
 
         return $this;
     }
@@ -185,7 +184,7 @@ class Quest
      */
     public function get(string $path, callable $callback) : Quest
     {
-        $this->routes[] = new Items\Route([static::REQUEST_METHODS[1], static::REQUEST_METHODS[2]], $path, $callback);
+        $this->routes[] = new Items\Route([Request::REQUEST_METHODS[1], Request::REQUEST_METHODS[2]], $path, $callback);
 
         return $this;
     }
@@ -234,7 +233,7 @@ class Quest
      */
     public function post(string $path, callable $callback) : Quest
     {
-        $this->routes[] = new Items\Route([static::REQUEST_METHODS[3]], $path, $callback);
+        $this->routes[] = new Items\Route([Request::REQUEST_METHODS[3]], $path, $callback);
 
         return $this;
     }
@@ -248,7 +247,7 @@ class Quest
      */
     public function put(string $path, callable $callback) : Quest
     {
-        $this->routes[] = new Items\Route([static::REQUEST_METHODS[4]], $path, $callback);
+        $this->routes[] = new Items\Route([Request::REQUEST_METHODS[4]], $path, $callback);
 
         return $this;
     }
@@ -261,7 +260,7 @@ class Quest
      */
     public function redirect(string $location, int $status = 302)
     {
-        $this->response->setHeader("location", $location);
+        $this->response->setHeader('location', $location);
 
         return $this->halt($status);
     }
@@ -274,11 +273,11 @@ class Quest
         try {
             ob_start();
 
-            $this->router($this->filters["before"]);
+            $this->router($this->filters['before']);
             $this->router($this->routes, true);
         } catch (Exception\Halt $exception) {
             $this->response->write($exception->getMessage());
-            $this->router($this->filters["after"]);
+            $this->router($this->filters['after']);
 
             ob_end_clean();
         }
@@ -312,7 +311,7 @@ class Quest
      */
     protected function pathToRegex(string $path) : string
     {
-        return "/\A" . preg_replace(static::ROUTE_PATTERNS, static::ROUTE_REPLACEMENTS, $path) . "\z/";
+        return '/\A' . preg_replace(static::ROUTE_PATTERNS, static::ROUTE_REPLACEMENTS, $path) . '\z/';
     }
 
     /**
@@ -342,7 +341,7 @@ class Quest
         }
 
         if ($routes) {
-            $this->errorCallback($this->request->request_method === "GET" ? 404 : 405);
+            $this->errorCallback($this->request->request_method === Request::REQUEST_METHODS[1] ? 404 : 405);
         }
     }
 
@@ -355,14 +354,14 @@ class Quest
      */
     protected function setParameter(string $route, string $key, $value)
     {
-        $key = ltrim($key, ":");
+        $key = ltrim($key, ':');
 
         # Skip if key matches our route, if value is bad or value already exists in parameters
         if (is_null($value) || $key === $route || in_array($value, $this->parameters->splat)) {
             return;
         }
 
-        if ($key === "*") {
+        if ($key === '*') {
             $this->parameters->splat[] = $value;
         } else {
             $this->parameters->$key = $value;
@@ -381,7 +380,7 @@ class Quest
     {
         array_shift($values);
 
-        preg_match_all("/(\:\w+|\*)/", $route, $keys);
+        preg_match_all('/(\:\w+|\*)/', $route, $keys);
 
         foreach ($keys[0] as $index => $key) {
             $this->setParameter($route, $key, $values[$index] ?? null);

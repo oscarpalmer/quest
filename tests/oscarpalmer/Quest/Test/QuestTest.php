@@ -17,15 +17,15 @@ class QuestTest extends \PHPUnit\Framework\TestCase
 
     public function setUp()
     {
-        $this->regex = ["REQUEST_URI" => "/a/b.c"];
-        $this->simple = ["REQUEST_URI" => "/"];
+        $this->regex = ['REQUEST_URI' => '/a/b.c'];
+        $this->simple = ['REQUEST_URI' => '/'];
 
         $this->routes = [
-            new Route(["GET"], "/", function () {
-                return "index";
+            new Route(['GET'], '/', function () {
+                return 'index';
             }),
-            new Route(["GET"], "/*/:b.:c", function () {
-                return "a/b.c";
+            new Route(['GET'], '/*/:b.:c', function () {
+                return 'a/b.c';
             })
         ];
     }
@@ -35,7 +35,7 @@ class QuestTest extends \PHPUnit\Framework\TestCase
         $quest = new Quest($this->routes, new Request($this->simple));
 
         $this->assertNotNull($quest);
-        $this->assertInstanceOf("oscarpalmer\Quest\Quest", $quest);
+        $this->assertInstanceOf('oscarpalmer\Quest\Quest', $quest);
     }
 
     /**
@@ -45,11 +45,19 @@ class QuestTest extends \PHPUnit\Framework\TestCase
     {
         $quest = new Quest;
 
-        $this->assertInstanceOf("oscarpalmer\Shelf\Request", $quest->request);
-        $this->assertInstanceOf("oscarpalmer\Shelf\Response", $quest->response);
-        $this->assertInternalType("array", $quest->errors);
-        $this->assertInternalType("array", $quest->filters);
-        $this->assertInternalType("array", $quest->routes);
+        $this->assertInstanceOf('oscarpalmer\Shelf\Cookies', $quest->cookies);
+        $this->assertInstanceOf('oscarpalmer\Shelf\Blob', $quest->data);
+        $this->assertInstanceOf('oscarpalmer\Shelf\Blob', $quest->files);
+        $this->assertInstanceOf('oscarpalmer\Shelf\Blob', $quest->query);
+        $this->assertInstanceOf('oscarpalmer\Shelf\Request', $quest->request);
+        $this->assertInstanceOf('oscarpalmer\Shelf\Response', $quest->response);
+        $this->assertInstanceOf('oscarpalmer\Shelf\Blob', $quest->server);
+        $this->assertInstanceOf('oscarpalmer\Shelf\Session', $quest->session);
+
+        $this->assertInternalType('array', $quest->errors);
+        $this->assertInternalType('array', $quest->filters);
+        $this->assertInternalType('array', $quest->routes);
+
         $this->assertNull($quest->not_a_property);
     }
 
@@ -64,26 +72,26 @@ class QuestTest extends \PHPUnit\Framework\TestCase
         $callback = function () {};
         $quest = new Quest;
 
-        $quest->delete("/", $callback);
-        $quest->get("/", $callback);
-        $quest->post("/", $callback);
-        $quest->put("/", $callback);
+        $quest->delete('/', $callback);
+        $quest->get('/', $callback);
+        $quest->post('/', $callback);
+        $quest->put('/', $callback);
 
-        $this->assertInternalType("array", $quest->routes);
+        $this->assertInternalType('array', $quest->routes);
         $this->assertCount(4, $quest->routes);
     }
 
     public function testCustomError()
     {
         $quest = new Quest([], new Request($this->simple));
-        $quest->error(404, function () { return "Custom error."; });
+        $quest->error(404, function () { return 'Custom error.'; });
 
         try {
             $quest->error(404);
         } catch (Halt $e) {
             $this->assertNotNull($e);
-            $this->assertInstanceOf("oscarpalmer\Quest\Exception\Halt", $e);
-            $this->assertSame("Custom error.", $e->getMessage());
+            $this->assertInstanceOf('oscarpalmer\Quest\Exception\Halt', $e);
+            $this->assertSame('Custom error.', $e->getMessage());
         }
     }
 
@@ -97,7 +105,7 @@ class QuestTest extends \PHPUnit\Framework\TestCase
         $quest = new Quest([], new Request($this->simple));
         $quest->run();
 
-        $this->expectOutputString("404 Not Found");
+        $this->expectOutputString('404 Not Found');
     }
 
     /**
@@ -109,52 +117,52 @@ class QuestTest extends \PHPUnit\Framework\TestCase
     {
         $quest = new Quest($this->routes, new Request($this->regex));
 
-        $quest->after("*", function () { return " after 1"; });
-        $quest->before("*", function () { return "before 1 "; });
+        $quest->after('*', function () { return ' after 1'; });
+        $quest->before('*', function () { return 'before 1 '; });
 
-        $quest->after("/a/b.c", function () { return " after 2"; });
-        $quest->before("/a/b.c", function () { return "before 2 "; });
+        $quest->after('/a/b.c', function () { return ' after 2'; });
+        $quest->before('/a/b.c', function () { return 'before 2 '; });
 
         $quest->run();
 
-        $this->expectOutputString("before 1 before 2 a/b.c after 1 after 2");
+        $this->expectOutputString('before 1 before 2 a/b.c after 1 after 2');
     }
 
     public function testHalt()
     {
         $quest = new Quest([], new Request($this->simple));
 
-        $quest->get("/", function ($quest) {
+        $quest->get('/', function ($quest) {
             $quest->halt(406);
         });
 
         $quest->run();
 
-        $this->expectOutputString("406 Not Acceptable");
+        $this->expectOutputString('406 Not Acceptable');
     }
 
     public function testHaltCustom()
     {
         $quest = new Quest([], new Request($this->simple));
 
-        $quest->get("/", function ($quest) {
-            $quest->halt(406, "Boo!");
+        $quest->get('/', function ($quest) {
+            $quest->halt(406, 'Boo!');
         });
 
         $quest->run();
 
-        $this->expectOutputString("Boo!");
+        $this->expectOutputString('Boo!');
     }
 
     public function testHeaders()
     {
         $quest = new Quest([], new Request($this->simple));
 
-        $quest->header("x-powered-by", "Quest!");
-        $this->assertSame($quest->header("x-powered-by"), "Quest!");
+        $quest->header('x-powered-by', 'Quest!');
+        $this->assertSame($quest->header('x-powered-by'), 'Quest!');
 
-        $quest->contentType("special/quest");
-        $this->assertSame($quest->contentType(), "special/quest");
+        $quest->contentType('special/quest');
+        $this->assertSame($quest->contentType(), 'special/quest');
     }
 
     public function testRedirect()
@@ -162,12 +170,12 @@ class QuestTest extends \PHPUnit\Framework\TestCase
         $quest = new Quest([], new Request($this->simple));
 
         try {
-            $quest->redirect("/a/b.c");
+            $quest->redirect('/a/b.c');
         } catch (Halt $e) {
             $this->assertNotNull($e);
-            $this->assertInstanceOf("oscarpalmer\Quest\Exception\Halt", $e);
+            $this->assertInstanceOf('oscarpalmer\Quest\Exception\Halt', $e);
 
-            $this->assertSame("302 Found", $e->getMessage());
+            $this->assertSame('302 Found', $e->getMessage());
         }
     }
 
@@ -181,7 +189,7 @@ class QuestTest extends \PHPUnit\Framework\TestCase
         $quest = new Quest($this->routes, new Request($this->regex));
         $quest->run();
 
-        $this->expectOutputString("a/b.c");
+        $this->expectOutputString('a/b.c');
     }
 
     /**
@@ -193,7 +201,7 @@ class QuestTest extends \PHPUnit\Framework\TestCase
         $quest = new Quest($this->routes, new Request($this->simple));
         $quest->run();
 
-        $this->expectOutputString("index");
+        $this->expectOutputString('index');
     }
 
     /**
@@ -202,9 +210,9 @@ class QuestTest extends \PHPUnit\Framework\TestCase
      */
     public function testSetParameters()
     {
-        $quest = new Quest([], new Request(["REQUEST_URI" => "/splat/file"]));
+        $quest = new Quest([], new Request(['REQUEST_URI' => '/splat/file']));
 
-        $quest->get("/*/:file(.:ext)", function ($x, $y, $z) {
+        $quest->get('/*/:file(.:ext)', function ($x, $y, $z) {
             $splat = $z->parameters->splat[0];
             $file  = $z->parameters->file;
 
@@ -215,6 +223,6 @@ class QuestTest extends \PHPUnit\Framework\TestCase
 
         $quest->run();
 
-        $this->expectOutputString("file found in splat");
+        $this->expectOutputString('file found in splat');
     }
 }

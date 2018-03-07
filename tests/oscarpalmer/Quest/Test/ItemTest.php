@@ -8,19 +8,19 @@ class ItemTest extends \PHPUnit\Framework\TestCase
 {
     public function testConstructor()
     {
-        $route = new Item(["GET"], "/", function () {});
+        $route = new Item(['GET'], '/', function () {});
 
         $this->assertNotNull($route);
-        $this->assertInstanceOf("oscarpalmer\Quest\Items\Item", $route);
+        $this->assertInstanceOf('oscarpalmer\Quest\Items\Item', $route);
     }
 
     public function testProperties()
     {
         $callback = function () {};
-        $route = new Item(["GET"], "/", $callback);
+        $route = new Item(['GET'], '/', $callback);
 
-        $this->assertSame(["GET"], $route->getMethods());
-        $this->assertSame("/", $route->getPath());
+        $this->assertSame(['GET'], $route->getMethods());
+        $this->assertSame('/', $route->getPath());
         $this->assertSame($callback, $route->getCallback());
     }
 }
