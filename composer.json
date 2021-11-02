@@ -26,7 +26,7 @@
   "license": "MIT",
   "name": "oscarpalmer/quest",
   "require": {
-    "oscarpalmer/shelf": "2.3.*",
+    "nyholm/psr7": ">=1.4.1",
     "php": ">=8.0"
   },
   "require-dev": {
