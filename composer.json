@@ -27,6 +27,7 @@
   "name": "oscarpalmer/quest",
   "require": {
     "nyholm/psr7": ">=1.4.1",
+    "nyholm/psr7-server": ">=1.0.2",
     "php": ">=8.0"
   },
   "require-dev": {
