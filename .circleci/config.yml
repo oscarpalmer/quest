@@ -1,0 +1,15 @@
+version: 2.1
+orbs:
+  codecov: codecov/codecov@3.1.0
+jobs:
+  build:
+    docker:
+      - image: circleci/php:8.0.0
+    steps:
+      - checkout
+      - run: sudo apt update
+      - run: sudo docker-php-ext-install zip
+      - run: composer install -n --prefer-dist
+      - run: XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-clover coverage.xml
+      - codecov/upload:
+          file: coverage.xml

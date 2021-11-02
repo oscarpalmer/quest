@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit bootstrap="tests/bootstrap.php">
+<phpunit
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
+  bootstrap="tests/bootstrap.php">
+  <coverage>
+    <include>
+      <directory suffix=".php">src</directory>
+    </include>
+  </coverage>
   <testsuites>
     <testsuite name="Quest Test Suite">
-      <directory>tests/oscarpalmer</directory>
+      <directory>tests</directory>
     </testsuite>
   </testsuites>
-  <filter>
-    <whitelist>
-      <directory suffix=".php">src/oscarpalmer</directory>
-    </whitelist>
-  </filter>
 </phpunit>

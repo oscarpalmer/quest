@@ -1,29 +1,37 @@
 {
   "author": [{
     "email": "opalmer@me.com",
-    "homepage": "http://opalmer.me",
+    "homepage": "http://oscarpalmer.se",
     "name": "Oscar Palmér",
     "role": "developer"
   }],
   "autoload": {
-    "psr-0": {
-      "oscarpalmer\\Quest": ["src/", "tests/"]
+    "psr-4": {
+      "oscarpalmer\\Quest\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "oscarpalmer\\Quest\\": "tests/"
     }
   },
   "description": "A PHP router.",
   "homepage": "https://github.com/oscarpalmer/quest",
   "keywords": [
     "framework",
-    "router"
+    "http",
+    "psr-7",
+    "routing"
   ],
   "license": "MIT",
   "name": "oscarpalmer/quest",
   "require": {
     "oscarpalmer/shelf": "2.3.*",
-    "php": ">=7.0"
+    "php": ">=8.0"
   },
   "require-dev": {
-    "phpunit/php-code-coverage": ">=5.2",
-    "phpunit/phpunit": ">=6.4"
-  }
+    "phpunit/php-code-coverage": ">=9.2",
+    "phpunit/phpunit": ">=9.5"
+  },
+  "type": "library"
 }
