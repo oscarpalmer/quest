@@ -2,6 +2,8 @@
 
 namespace oscarpalmer\Quest\Router;
 
+use oscarpalmer\Quest\Router\Item\RouteItem;
+
 class Routes
 {
     protected array $DELETE = [];
@@ -12,17 +14,17 @@ class Routes
     protected array $POST = [];
     protected array $PUT = [];
 
-    public function add(string $method, string $path, mixed $value): void
+    public function add(string $verb, string $path, callable|string $callback, ?string $method = null): void
     {
-        $this->{$method}[] = [$path, $value];
+        $this->{$verb}[] = new RouteItem($path, $callback, $method);
     }
 
-    public function get(string $method): array
+    public function get(string $verb): array
     {
-        if ($method === 'HEAD') {
+        if ($verb === 'HEAD') {
             return $this->GET;
         }
 
-        return $this->{$method} ?? [];
+        return $this->{$verb} ?? [];
     }
 }

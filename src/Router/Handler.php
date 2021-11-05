@@ -2,6 +2,8 @@
 
 namespace oscarpalmer\Quest\Router;
 
+use oscarpalmer\Quest\Router\Item\Error;
+
 class Handler
 {
     protected Router $router;
@@ -11,51 +13,51 @@ class Handler
         $this->router = $router;
     }
 
-    public function delete(string $path, mixed $value): self
+    public function delete(string $path, callable|string $callback, string $method = null): self
     {
-        $this->router->routes->add('DELETE', $path, $value);
+        $this->router->routes->add('DELETE', $path, $callback, $method);
 
         return $this;
     }
 
-    public function error(int $status, mixed $error): self
+    public function error(int $status, callable|string $callback, string $method = null): self
     {
-        $this->router->errors[$status] = $error;
+        $this->router->errors[$status] = new Error($callback, $method);
 
         return $this;
     }
 
-    public function get(string $path, mixed $value): self
+    public function get(string $path, callable|string $callback, string $method = null): self
     {
-        $this->router->routes->add('GET', $path, $value);
+        $this->router->routes->add('GET', $path, $callback, $method);
 
         return $this;
     }
 
-    public function options(string $path, mixed $value): self
+    public function options(string $path, callable|string $callback, string $method = null): self
     {
-        $this->router->routes->add('OPTIONS', $path, $value);
+        $this->router->routes->add('OPTIONS', $path, $callback, $method);
 
         return $this;
     }
 
-    public function patch(string $path, mixed $value): self
+    public function patch(string $path, callable|string $callback, string $method = null): self
     {
-        $this->router->routes->add('PATCH', $path, $value);
+        $this->router->routes->add('PATCH', $path, $callback, $method);
 
         return $this;
     }
 
-    public function post(string $path, mixed $value): self
+    public function post(string $path, callable|string $callback, string $method = null): self
     {
-        $this->router->routes->add('POST', $path, $value);
+        $this->router->routes->add('POST', $path, $callback, $method);
 
         return $this;
     }
 
-    public function put(string $path, mixed $value): self
+    public function put(string $path, callable|string $callback, string $method = null): self
     {
-        $this->router->routes->add('PUT', $path, $value);
+        $this->router->routes->add('PUT', $path, $callback, $method);
 
         return $this;
     }

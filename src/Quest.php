@@ -2,7 +2,7 @@
 
 namespace oscarpalmer\Quest;
 
-use Exception;
+use Throwable;
 use LogicException;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -10,8 +10,11 @@ use Nyholm\Psr7\Response;
 use Nyholm\Psr7Server\ServerRequestCreator;
 use Psr\Http\Message\ServerRequestInterface;
 
+use oscarpalmer\Quest\Exception\ErrorException;
 use oscarpalmer\Quest\Router\Router;
+use Psr\Http\Message\ResponseInterface;
 
+use function call_user_func;
 use function header;
 use function headers_sent;
 use function join;
@@ -57,8 +60,10 @@ class Quest
             ob_start();
 
             $this->router->dispatch();
-        } catch (Exception $exception) {
-            $this->router->createErrorResponse($exception->getCode());
+        } catch (ErrorException $exception) {
+            $this->router->getErrorResponse($exception->getStatus());
+        } catch (Throwable $exception) {
+            $this->router->getErrorResponse(500);
         } finally {
             ob_end_clean();
 

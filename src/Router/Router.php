@@ -2,16 +2,27 @@
 
 namespace oscarpalmer\Quest\Router;
 
-use Exception;
+use LogicException;
 
 use Nyholm\Psr7\Response;
+use Psr\Http\Message\ResponseInterface;
 
 use oscarpalmer\Quest\Context;
+use oscarpalmer\Quest\Exception\ErrorException;
+use oscarpalmer\Quest\Router\Item\BaseItem;
 
+use function call_user_func;
+use function in_array;
+use function is_callable;
+use function preg_match;
 use function preg_replace;
+use function sprintf;
 
 class Router
 {
+    protected const EXPRESSION_PREFIX = '/\A';
+    protected const EXPRESSION_SUFFIX = '\z/u';
+
     /**
      * @var array Array of regular expression patterns for paths
      */
@@ -36,19 +47,6 @@ class Router
         $this->context = $context;
     }
 
-    public function createErrorResponse(int $status): void
-    {
-        $response = new Response($status, []);
-
-        if (isset($this->errors[$status])) {
-            $response->getBody()->write((string) $this->errors[$status]);
-        } else {
-            $response->getBody()->write(sprintf('%d %s', $status, $response->getReasonPhrase()));
-        }
-
-        $this->context->response = $response;
-    }
-
     public function dispatch(): void
     {
         $method = $this->context->request->getMethod();
@@ -62,25 +60,60 @@ class Router
 
         foreach ($routes as $route) {
             if (
-                $this->getExpressionFromPath($route[0], $expression)
+                $this->getExpressionFromPath($route->getPath(), $expression)
                 && preg_match($expression, $path, $parameters) === 1
             ) {
                 $found = true;
 
-                $this->context->response->getBody()->write(call_user_func($route[1], $this->context));
+                $this->context->response = $this->getResponse($route);
 
                 break;
             }
         }
 
         if (!$found) {
-            throw new Exception('', in_array($method, ['GET', 'HEAD']) ? 404 : 405);
+            throw new ErrorException(in_array($method, ['GET', 'HEAD']) ? 404 : 405);
         }
+    }
+
+    public function getErrorResponse(int $status): void
+    {
+        if (isset($this->errors[$status])) {
+            $this->context->response = $this->getResponse($this->errors[$status]);
+
+            return;
+        }
+
+        $response = new Response($status);
+
+        $response->getBody()->write(sprintf('%d %s', $status, $response->getReasonPhrase()));
+
+        $this->context->response = $response;
+    }
+
+    protected function getResponse(BaseItem $item): ResponseInterface
+    {
+        $response = call_user_func($this->getResponseCallback($item), $this->context->request);
+
+        if ($response instanceof ResponseInterface) {
+            return $response;
+        }
+
+        throw new LogicException();
+    }
+
+    protected function getResponseCallback(BaseItem $item): mixed
+    {
+        if (is_callable($item->getCallback())) {
+            return $item->getCallback();
+        }
+
+        return [new ($item->getCallback()), $item->getMethod() ?? '__invoke'];
     }
 
     protected function getExpressionFromPath(string $path, string &$expression): bool
     {
-        $expression = '/\A' . preg_replace(self::ROUTE_PATTERNS, self::ROUTE_REPLACEMENTS, $path) . '\z/u';
+        $expression = self::EXPRESSION_PREFIX . preg_replace(self::ROUTE_PATTERNS, self::ROUTE_REPLACEMENTS, $path) . self::EXPRESSION_SUFFIX;
 
         return true;
     }
