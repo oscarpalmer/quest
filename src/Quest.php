@@ -8,13 +8,13 @@ use LogicException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7Server\ServerRequestCreator;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 use oscarpalmer\Quest\Router\Router;
 
 use function header;
 use function headers_sent;
+use function join;
 use function ob_end_clean;
 use function ob_start;
 use function sprintf;
@@ -29,19 +29,15 @@ class Quest
      */
     const VERSION = '3.0.0';
 
+    protected Context $context;
     protected Psr17Factory $factory;
     protected Router $router;
-
-    public ServerRequestInterface $request;
-    public ResponseInterface $response;
 
     public function __construct(ServerRequestInterface $request = null)
     {
         $this->factory = new Psr17Factory();
-        $this->router = new Router($this);
-
-        $this->request = $request ?? $this->createRequest();
-        $this->response = new Response();
+        $this->context = new Context($request ?? $this->createRequest(), new Response());
+        $this->router = new Router($this->context);
     }
 
     public function routes(callable $handler): self
@@ -77,9 +73,10 @@ class Quest
 
     protected function finish(): void
     {
-        $response = $this->response->withHeader('content-length', $this->response->getBody()->getSize());
+        $response = $this->context->response;
+        $response = $response->withHeader('content-length', $response->getBody()->getSize());
 
-        $status = $this->response->getStatusCode();
+        $status = $response->getStatusCode();
 
         header(sprintf('HTTP/%s %d %s', $response->getProtocolVersion(), $status, $response->getReasonPhrase()), true, $status);
 

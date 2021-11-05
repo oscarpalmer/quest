@@ -6,7 +6,7 @@ use Exception;
 
 use Nyholm\Psr7\Response;
 
-use oscarpalmer\Quest\Quest;
+use oscarpalmer\Quest\Context;
 
 use function preg_replace;
 
@@ -22,18 +22,18 @@ class Router
      */
     protected const ROUTE_REPLACEMENTS = ['/', '/?', '\/', '\.', '(?:\\1)?', '(.*?)', '([\w\-]+)'];
 
-    protected Quest $quest;
+    protected Context $context;
 
     public array $errors = [];
     public Handler $handler;
     public Routes $routes;
 
-    public function __construct(Quest $quest)
+    public function __construct(Context $context)
     {
         $this->routes = new Routes();
         $this->handler = new Handler($this);
 
-        $this->quest = $quest;
+        $this->context = $context;
     }
 
     public function createErrorResponse(int $status): void
@@ -46,13 +46,13 @@ class Router
             $response->getBody()->write(sprintf('%d %s', $status, $response->getReasonPhrase()));
         }
 
-        $this->quest->response = $response;
+        $this->context->response = $response;
     }
 
     public function dispatch(): void
     {
-        $method = $this->quest->request->getMethod();
-        $path = $this->quest->request->getUri()->getPath();
+        $method = $this->context->request->getMethod();
+        $path = $this->context->request->getUri()->getPath();
 
         $expression = '';
         $found = false;
@@ -67,7 +67,7 @@ class Router
             ) {
                 $found = true;
 
-                $this->quest->response->getBody()->write(is_scalar($route[1]) ? (string) $route[1] : json_encode($route[1]));
+                $this->context->response->getBody()->write(call_user_func($route[1], $this->context));
 
                 break;
             }
