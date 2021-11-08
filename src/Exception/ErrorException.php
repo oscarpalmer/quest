@@ -1,10 +1,13 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace oscarpalmer\Quest\Exception;
 
 use Exception;
 
-class ErrorException extends Exception {
+class ErrorException extends Exception
+{
     protected int $status;
 
     public function __construct(int $status)

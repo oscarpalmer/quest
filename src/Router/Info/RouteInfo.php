@@ -1,15 +1,17 @@
-<?php declare(strict_types=1);
+<?php
 
-namespace oscarpalmer\Quest\Router;
+declare(strict_types=1);
+
+namespace oscarpalmer\Quest\Router\Info;
 
 use Throwable;
 
 class RouteInfo
 {
     protected ?Throwable $error;
-    protected RouteUrl $url;
+    protected RouteInfoUrl $url;
 
-    public function __construct(RouteUrl $url, ?Throwable $throwable)
+    public function __construct(RouteInfoUrl $url, ?Throwable $throwable)
     {
         $this->error = $throwable;
         $this->url = $url;
@@ -20,7 +22,7 @@ class RouteInfo
         return $this->error;
     }
 
-    public function getUrl(): RouteUrl
+    public function getUrl(): RouteInfoUrl
     {
         return $this->url;
     }

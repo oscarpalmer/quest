@@ -1,8 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace oscarpalmer\Quest\Router\Item;
 
-class RouteItem extends BaseItem {
+class RouteItem extends BaseItem
+{
     protected string $path;
 
     public function __construct(string $path, callable|string $callback, ?string $method = null)

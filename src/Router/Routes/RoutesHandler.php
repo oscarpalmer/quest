@@ -1,10 +1,13 @@
-<?php declare(strict_types=1);
+<?php
 
-namespace oscarpalmer\Quest\Router;
+declare(strict_types=1);
 
+namespace oscarpalmer\Quest\Router\Routes;
+
+use oscarpalmer\Quest\Router\Router;
 use oscarpalmer\Quest\Router\Item\ErrorItem;
 
-class Handler
+class RoutesHandler
 {
     protected Router $router;
 

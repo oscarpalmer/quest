@@ -1,17 +1,20 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace oscarpalmer\Quest;
 
 use Throwable;
 use LogicException;
 
-use Nyholm\Psr7\Response;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
 use oscarpalmer\Quest\Exception\ErrorException;
+use oscarpalmer\Quest\Router\Middleware;
 use oscarpalmer\Quest\Router\Router;
 
 use function call_user_func;
@@ -25,7 +28,7 @@ use function sprintf;
 /**
  * Quest
  */
-class Quest
+class Quest implements RequestHandlerInterface
 {
     /**
      * @var string Current version
@@ -34,13 +37,39 @@ class Quest
 
     protected static Psr17Factory $factory;
 
-    protected Context $context;
+    protected Middleware $middleware;
     protected Router $router;
 
-    public function __construct(ServerRequestInterface $request = null)
+    public function __construct()
     {
-        $this->context = new Context($request ?? $this->createRequest(), new Response());
-        $this->router = new Router($this->context);
+        $this->router = new Router();
+        $this->middleware = new Middleware($this->router);
+    }
+
+    public function handle(ServerRequestInterface $request): ResponseInterface
+    {
+        $response = null;
+
+        try {
+            ob_start();
+
+            $response = $this->middleware->handle($request);
+        } catch (ErrorException $exception) {
+            $response = $this->router->getErrorResponse($request, $exception->getStatus());
+        } catch (Throwable $throwable) {
+            $response = $this->router->getErrorResponse($request, 500, $throwable);
+        } finally {
+            ob_end_clean();
+
+            return $response;
+        }
+    }
+
+    public function middleware(array $items): self
+    {
+        $this->middleware->add($items);
+
+        return $this;
     }
 
     public function routes(callable $handler): self
@@ -50,25 +79,16 @@ class Quest
         return $this;
     }
 
-    public function run(): void
+    public function run(ServerRequestInterface $request = null): void
     {
         if (headers_sent()) {
             throw new LogicException();
         }
 
-        try {
-            ob_start();
+        $request = $request ?? $this->createRequest();
+        $response = $this->handle($request);
 
-            $this->router->dispatch();
-        } catch (ErrorException $exception) {
-            $this->router->getErrorResponse($exception->getStatus());
-        } catch (Throwable $throwable) {
-            $this->router->getErrorResponse(500, $throwable);
-        } finally {
-            ob_end_clean();
-
-            $this->finish();
-        }
+        $this->finish($response);
     }
 
     protected function createRequest(): ServerRequestInterface
@@ -78,9 +98,8 @@ class Quest
         return (new ServerRequestCreator($factory, $factory, $factory, $factory))->fromGlobals();
     }
 
-    protected function finish(): void
+    protected function finish(ResponseInterface $response): void
     {
-        $response = $this->context->response;
         $response = $response->withHeader('content-length', $response->getBody()->getSize());
 
         $protocol = $response->getProtocolVersion();

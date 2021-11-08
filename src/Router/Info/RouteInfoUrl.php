@@ -1,6 +1,8 @@
-<?php declare(strict_types=1);
+<?php
 
-namespace oscarpalmer\Quest\Router;
+declare(strict_types=1);
+
+namespace oscarpalmer\Quest\Router\Info;
 
 use stdClass;
 
@@ -11,7 +13,7 @@ use function ltrim;
 use function mb_strtolower;
 use function preg_match_all;
 
-class RouteUrl
+class RouteInfoUrl
 {
     protected string $path;
 
