@@ -55,26 +55,23 @@ class Router
         $path = $this->context->request->getUri()->getPath();
 
         $expression = '';
-        $found = false;
         $parameters = [];
 
         $routes = $this->routes->get($method);
 
         foreach ($routes as $route) {
+            $routePath = $route->getPath();
+
             if (
-                $this->getExpressionFromPath($route->getPath(), $expression)
+                $this->getExpressionFromPath($routePath, $expression)
                 && preg_match($expression, $path, $parameters) === 1
             ) {
-                $found = true;
+                $routeUrl = new RouteUrl($path, $routePath, $parameters);
 
-                $this->context->response = $this->getResponse($route, $parameters, null);
+                $this->context->response = $this->getResponse($route, $routeUrl, null);
 
-                break;
+                return;
             }
-        }
-
-        if ($found) {
-            return;
         }
 
         if (in_array($method, ['GET', 'HEAD'])) {
@@ -87,7 +84,9 @@ class Router
     public function getErrorResponse(int $status, Throwable $throwable = null): void
     {
         if (isset($this->errors[$status])) {
-            $this->context->response = $this->getResponse($this->errors[$status], [], $throwable);
+            $routeUrl = new RouteUrl($this->context->request->getUri()->getPath());
+
+            $this->context->response = $this->getResponse($this->errors[$status], $routeUrl, $throwable);
 
             return;
         }
@@ -99,9 +98,11 @@ class Router
         $this->context->response = $response;
     }
 
-    protected function getResponse(BaseItem $item, array $parameters, ?Throwable $throwable): ResponseInterface
+    protected function getResponse(BaseItem $item, RouteUrl $routeUrl, ?Throwable $throwable): ResponseInterface
     {
-        $response = call_user_func($this->getResponseCallback($item), $this->context->request, $parameters, $throwable);
+        $routeInfo = new RouteInfo($routeUrl, $throwable);
+
+        $response = call_user_func($this->getResponseCallback($item), $this->context->request, $routeInfo);
 
         if ($response instanceof ResponseInterface) {
             return $response;
@@ -112,11 +113,13 @@ class Router
 
     protected function getResponseCallback(BaseItem $item): mixed
     {
-        if (is_callable($item->getCallback())) {
-            return $item->getCallback();
+        $callback = $item->getCallback();
+
+        if (is_callable($callback)) {
+            return $callback;
         }
 
-        return [new ($item->getCallback()), $item->getMethod() ?? '__invoke'];
+        return [new $callback, $item->getMethod() ?? '__invoke'];
     }
 
     protected function getExpressionFromPath(string $path, string &$expression): bool
