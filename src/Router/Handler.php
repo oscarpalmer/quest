@@ -2,7 +2,7 @@
 
 namespace oscarpalmer\Quest\Router;
 
-use oscarpalmer\Quest\Router\Item\Error;
+use oscarpalmer\Quest\Router\Item\ErrorItem;
 
 class Handler
 {
@@ -11,6 +11,13 @@ class Handler
     public function __construct(Router $router)
     {
         $this->router = $router;
+    }
+
+    public function add(string $verb, string $path, callable|string $callback, string $method = null): self
+    {
+        $this->router->routes->add($verb, $path, $callback, $method);
+
+        return $this;
     }
 
     public function delete(string $path, callable|string $callback, string $method = null): self
@@ -22,7 +29,7 @@ class Handler
 
     public function error(int $status, callable|string $callback, string $method = null): self
     {
-        $this->router->errors[$status] = new Error($callback, $method);
+        $this->router->errors[$status] = new ErrorItem($callback, $method);
 
         return $this;
     }

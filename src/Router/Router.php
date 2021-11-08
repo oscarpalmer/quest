@@ -3,12 +3,14 @@
 namespace oscarpalmer\Quest\Router;
 
 use LogicException;
+use Throwable;
 
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 
 use oscarpalmer\Quest\Context;
-use oscarpalmer\Quest\Exception\ErrorException;
+use oscarpalmer\Quest\Exception\MethodNotAllowedException;
+use oscarpalmer\Quest\Exception\NotFoundException;
 use oscarpalmer\Quest\Router\Item\BaseItem;
 
 use function call_user_func;
@@ -65,21 +67,27 @@ class Router
             ) {
                 $found = true;
 
-                $this->context->response = $this->getResponse($route);
+                $this->context->response = $this->getResponse($route, $parameters, null);
 
                 break;
             }
         }
 
-        if (!$found) {
-            throw new ErrorException(in_array($method, ['GET', 'HEAD']) ? 404 : 405);
+        if ($found) {
+            return;
         }
+
+        if (in_array($method, ['GET', 'HEAD'])) {
+            throw new NotFoundException();
+        } 
+
+        throw new MethodNotAllowedException();
     }
 
-    public function getErrorResponse(int $status): void
+    public function getErrorResponse(int $status, Throwable $throwable = null): void
     {
         if (isset($this->errors[$status])) {
-            $this->context->response = $this->getResponse($this->errors[$status]);
+            $this->context->response = $this->getResponse($this->errors[$status], [], $throwable);
 
             return;
         }
@@ -91,9 +99,9 @@ class Router
         $this->context->response = $response;
     }
 
-    protected function getResponse(BaseItem $item): ResponseInterface
+    protected function getResponse(BaseItem $item, array $parameters, ?Throwable $throwable): ResponseInterface
     {
-        $response = call_user_func($this->getResponseCallback($item), $this->context->request);
+        $response = call_user_func($this->getResponseCallback($item), $this->context->request, $parameters, $throwable);
 
         if ($response instanceof ResponseInterface) {
             return $response;
