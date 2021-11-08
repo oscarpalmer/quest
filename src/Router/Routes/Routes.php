@@ -16,9 +16,9 @@ class Routes
     protected array $POST = [];
     protected array $PUT = [];
 
-    public function add(string $verb, string $path, callable|string $callback, ?string $method = null): void
+    public function add(string $verb, string $path, callable|string $callback, ?string $method = null, array $middleware = []): void
     {
-        $this->{$verb}[] = new RouteItem($path, $callback, $method);
+        $this->{$verb}[] = new RouteItem($path, $callback, $method, $middleware);
     }
 
     public function get(string $verb): array

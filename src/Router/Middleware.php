@@ -17,16 +17,17 @@ use function is_string;
 
 class Middleware implements RequestHandlerInterface
 {
-    protected RequestHandlerInterface $handler;
+    protected mixed $handler;
     protected array $items;
 
-    public function __construct(RequestHandlerInterface $handler)
+    public function __construct(callable|RequestHandlerInterface $handler)
     {
-        $this->handler = $handler;
         $this->items = [];
+
+        $this->setHandler($handler);
     }
 
-    public function add(array $items): void
+    public function add(array $items): self
     {
         foreach ($items as $item) {
             if (is_string($item) === false) {
@@ -35,16 +36,29 @@ class Middleware implements RequestHandlerInterface
 
             $this->items[] = $item;
         }
+
+        return $this;
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         if (count($this->items) === 0) {
-            return call_user_func([$this->handler, 'handle'], $request);
+            return call_user_func($this->handler, $request);
         }
 
         $middleware = array_shift($this->items);
 
         return call_user_func([new $middleware, 'process'], $request, $this);
+    }
+
+    protected function setHandler(callable|RequestHandlerInterface $handler): void
+    {
+        if (is_callable($handler)) {
+            $this->handler = $handler;
+
+            return;
+        }
+
+        $this->handler = [$handler, 'handle'];
     }
 }

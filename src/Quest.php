@@ -85,10 +85,7 @@ class Quest implements RequestHandlerInterface
             throw new LogicException();
         }
 
-        $request = $request ?? $this->createRequest();
-        $response = $this->handle($request);
-
-        $this->finish($response);
+        $this->finish($this->handle($request ?? $this->createRequest()));
     }
 
     protected function createRequest(): ServerRequestInterface

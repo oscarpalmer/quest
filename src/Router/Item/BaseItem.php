@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace oscarpalmer\Quest\Router\Item;
 
+use function is_callable;
+
 abstract class BaseItem
 {
     protected mixed $callback;
@@ -15,13 +17,12 @@ abstract class BaseItem
         $this->method = $method;
     }
 
-    public function getCallback(): callable|string
+    public function getCallback(): callable
     {
-        return $this->callback;
-    }
+        if (is_callable($this->callback)) {
+            return $this->callback;
+        }
 
-    public function getMethod(): ?string
-    {
-        return $this->method;
+        return [new $this->callback, $this->method ?? 'handle'];
     }
 }

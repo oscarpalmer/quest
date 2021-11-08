@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace oscarpalmer\Quest\Router;
 
-use LogicException;
 use Throwable;
 
 use Nyholm\Psr7\Response;
@@ -22,26 +21,10 @@ use oscarpalmer\Quest\Router\Routes\RoutesHandler;
 
 use function call_user_func;
 use function in_array;
-use function is_callable;
-use function preg_match;
-use function preg_replace;
 use function sprintf;
 
 class Router implements RequestHandlerInterface
 {
-    protected const EXPRESSION_PREFIX = '/\A';
-    protected const EXPRESSION_SUFFIX = '\z/u';
-
-    /**
-     * @var array Array of regular expression patterns for paths
-     */
-    protected const ROUTE_PATTERNS = ['/\A\/*/u', '/\/*\z/u', '/\//u', '/\./u', '/\((.*?)\)/u', '/\*/u', '/\:([\w\-]+)/u'];
-
-    /**
-     * @var array Array of regular expression replacements for paths
-     */
-    protected const ROUTE_REPLACEMENTS = ['/', '/?', '\/', '\.', '(?:\\1)?', '(.*?)', '([\w\-]+)'];
-
     public array $errors;
     public RoutesHandler $handler;
     public Routes $routes;
@@ -58,21 +41,13 @@ class Router implements RequestHandlerInterface
         $method = $request->getMethod();
         $path = $request->getUri()->getPath();
 
-        $expression = '';
-        $parameters = [];
-
         $routes = $this->routes->get($method);
 
         foreach ($routes as $route) {
-            $routePath = $route->getPath();
-
-            if (
-                $this->getExpressionFromPath($routePath, $expression)
-                && preg_match($expression, $path, $parameters) === 1
-            ) {
-                $routeInfoUrl = new RouteInfoUrl($path, $routePath, $parameters);
-
-                return $this->getResponse($request, $route, $routeInfoUrl, null);
+            if ($route->match($path)) {
+                return (new Middleware(function ($request) use ($path, $route) {
+                    return $this->getResponse($request, $route, new RouteInfoUrl($path, $route->getPath(), $route->getParameters()), null);
+                }))->add($route->getMiddleware())->handle($request);
             }
         }
 
@@ -83,11 +58,8 @@ class Router implements RequestHandlerInterface
         throw new MethodNotAllowedException();
     }
 
-    public function getErrorResponse(
-        ServerRequestInterface $request,
-        int $status,
-        Throwable $throwable = null
-    ): ResponseInterface {
+    public function getErrorResponse(ServerRequestInterface $request, int $status, Throwable $throwable = null): ResponseInterface
+    {
         if (isset($this->errors[$status])) {
             $routeInfoUrl = new RouteInfoUrl($request->getUri()->getPath());
 
@@ -101,38 +73,8 @@ class Router implements RequestHandlerInterface
         return $response;
     }
 
-    protected function getResponse(
-        ServerRequestInterface $request,
-        BaseItem $item,
-        RouteInfoUrl $routeInfoUrl,
-        ?Throwable $throwable
-    ): ResponseInterface {
-        $routeInfo = new RouteInfo($routeInfoUrl, $throwable);
-
-        $response = call_user_func($this->getResponseCallback($item), $request, $routeInfo);
-
-        if ($response instanceof ResponseInterface) {
-            return $response;
-        }
-
-        throw new LogicException();
-    }
-
-    protected function getResponseCallback(BaseItem $item): mixed
+    protected function getResponse(ServerRequestInterface $request, BaseItem $item, RouteInfoUrl $routeInfoUrl, ?Throwable $throwable): ResponseInterface
     {
-        $callback = $item->getCallback();
-
-        if (is_callable($callback)) {
-            return $callback;
-        }
-
-        return [new $callback, $item->getMethod() ?? 'handle'];
-    }
-
-    protected function getExpressionFromPath(string $path, string &$expression): bool
-    {
-        $expression = self::EXPRESSION_PREFIX . preg_replace(self::ROUTE_PATTERNS, self::ROUTE_REPLACEMENTS, $path) . self::EXPRESSION_SUFFIX;
-
-        return true;
+        return call_user_func($item->getCallback(), $request, new RouteInfo($routeInfoUrl, $throwable));
     }
 }

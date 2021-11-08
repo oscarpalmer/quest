@@ -16,14 +16,14 @@ class RoutesHandler
         $this->router = $router;
     }
 
-    public function add(string $verb, string $path, callable|string $callback, string $method = null): self
+    public function add(string $verb, string $path, callable|string $callback, string $method = null, array $middleware = []): self
     {
-        $this->router->routes->add($verb, $path, $callback, $method);
+        $this->router->routes->add($verb, $path, $callback, $method, $middleware);
 
         return $this;
     }
 
-    public function delete(string $path, callable|string $callback, string $method = null): self
+    public function delete(string $path, callable|string $callback, string $method = null, array $middleware = []): self
     {
         $this->router->routes->add('DELETE', $path, $callback, $method);
 
@@ -37,37 +37,37 @@ class RoutesHandler
         return $this;
     }
 
-    public function get(string $path, callable|string $callback, string $method = null): self
+    public function get(string $path, callable|string $callback, string $method = null, array $middleware = []): self
     {
-        $this->router->routes->add('GET', $path, $callback, $method);
+        $this->router->routes->add('GET', $path, $callback, $method, $middleware);
 
         return $this;
     }
 
-    public function options(string $path, callable|string $callback, string $method = null): self
+    public function options(string $path, callable|string $callback, string $method = null, array $middleware = []): self
     {
-        $this->router->routes->add('OPTIONS', $path, $callback, $method);
+        $this->router->routes->add('OPTIONS', $path, $callback, $method, $middleware);
 
         return $this;
     }
 
-    public function patch(string $path, callable|string $callback, string $method = null): self
+    public function patch(string $path, callable|string $callback, string $method = null, array $middleware = []): self
     {
-        $this->router->routes->add('PATCH', $path, $callback, $method);
+        $this->router->routes->add('PATCH', $path, $callback, $method, $middleware);
 
         return $this;
     }
 
-    public function post(string $path, callable|string $callback, string $method = null): self
+    public function post(string $path, callable|string $callback, string $method = null, array $middleware = []): self
     {
-        $this->router->routes->add('POST', $path, $callback, $method);
+        $this->router->routes->add('POST', $path, $callback, $method, $middleware);
 
         return $this;
     }
 
-    public function put(string $path, callable|string $callback, string $method = null): self
+    public function put(string $path, callable|string $callback, string $method = null, array $middleware = []): self
     {
-        $this->router->routes->add('PUT', $path, $callback, $method);
+        $this->router->routes->add('PUT', $path, $callback, $method, $middleware);
 
         return $this;
     }
