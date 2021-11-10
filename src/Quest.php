@@ -13,7 +13,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-use oscarpalmer\Quest\Exception\ErrorException;
+use oscarpalmer\Quest\Http\Exception\HttpException;
 use oscarpalmer\Quest\Router\Middleware\MiddlewareHandler;
 use oscarpalmer\Quest\Router\Router;
 
@@ -52,8 +52,8 @@ class Quest implements RequestHandlerInterface
             ob_start();
 
             $response = $this->middleware->handle($request);
-        } catch (ErrorException $exception) {
-            $response = $this->router->getErrorResponse($request, $exception->getStatus(), $exception);
+        } catch (HttpException $exception) {
+            $response = $this->router->getErrorResponse($request, $exception->getCode(), $exception);
         } catch (Throwable $throwable) {
             $response = $this->router->getErrorResponse($request, 500, $throwable);
         } finally {

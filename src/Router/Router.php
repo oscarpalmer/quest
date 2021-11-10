@@ -11,8 +11,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-use oscarpalmer\Quest\Exception\MethodNotAllowedException;
-use oscarpalmer\Quest\Exception\NotFoundException;
+use oscarpalmer\Quest\Http\Exception\MethodNotAllowedException;
+use oscarpalmer\Quest\Http\Exception\NotFoundException;
 use oscarpalmer\Quest\Router\Info\RouteUrl;
 use oscarpalmer\Quest\Router\Item\RouteItem;
 use oscarpalmer\Quest\Router\Middleware\MiddlewareHandler;

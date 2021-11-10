@@ -8,6 +8,7 @@ use InvalidArgumentException;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\UriInterface;
 
 class Response
 {
@@ -19,23 +20,28 @@ class Response
 
     protected static Psr17Factory $factory;
 
-    public static function html(mixed $body, array $headers = []): ResponseInterface
+    public static function html(mixed $body, array $headers = [], int $status = 200): ResponseInterface
     {
         if (is_scalar($body) === false) {
             throw new InvalidArgumentException();
         }
 
-        return self::create($body, $headers)->withAddedHeader('content-type', 'text/html');
+        return self::create($status, $body, $headers)->withAddedHeader('content-type', 'text/html');
     }
 
-    public static function json(mixed $data, array $headers = []): ResponseInterface
+    public static function json(mixed $data, array $headers = [], int $status = 200): ResponseInterface
     {
-        return self::create(json_encode($data, self::JSON_OPTIONS), $headers)->withAddedHeader('content-type', 'application/json');
+        return self::create($status, json_encode($data, self::JSON_OPTIONS), $headers)->withAddedHeader('content-type', 'application/json');
     }
 
-    protected static function create(string $body, array $headers): ResponseInterface
+    public static function redirect(string|UriInterface $uri, array $headers = [], int $status = 302): ResponseInterface
     {
-        $response = self::getFactory()->createResponse(200);
+        return self::create($status, '', $headers)->withHeader('location', (string) $uri);
+    }
+
+    protected static function create(int $status, string $body, array $headers): ResponseInterface
+    {
+        $response = self::getFactory()->createResponse($status);
 
         foreach ($headers as $header => $value) {
             $response = $response->withAddedHeader($header, $value);
