@@ -6,7 +6,7 @@ namespace oscarpalmer\Quest\Router\Routes;
 
 use oscarpalmer\Quest\Router\Item\RouteItem;
 
-class Routes
+class RoutesCollection
 {
     protected array $DELETE = [];
     protected array $GET = [];

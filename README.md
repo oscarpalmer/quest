@@ -10,6 +10,13 @@ Quest is a router for PHP `>=8`.
 
 &mdash; Haderus of Gottlesfont, _[Modern Heretics](http://uesp.net/wiki/Lore:Modern_Heretics)_
 
+## Todo
+
+- Response helpers
+- Tests
+- Comments, explanations, etc.
+- Documentation
+
 ## License
 
-MIT Licensed; see [the LICENSE file](LICENSE) for more info.
+[MIT licensed](LICENSE); you're free to do whatever you'd like with all this. :v:

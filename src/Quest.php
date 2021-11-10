@@ -14,7 +14,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 use oscarpalmer\Quest\Exception\ErrorException;
-use oscarpalmer\Quest\Router\Middleware;
+use oscarpalmer\Quest\Router\Middleware\MiddlewareHandler;
 use oscarpalmer\Quest\Router\Router;
 
 use function call_user_func;
@@ -35,15 +35,13 @@ class Quest implements RequestHandlerInterface
      */
     const VERSION = '3.0.0';
 
-    protected static Psr17Factory $factory;
-
-    protected Middleware $middleware;
+    protected MiddlewareHandler $middleware;
     protected Router $router;
 
     public function __construct()
     {
         $this->router = new Router();
-        $this->middleware = new Middleware($this->router);
+        $this->middleware = new MiddlewareHandler($this->router);
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -55,7 +53,7 @@ class Quest implements RequestHandlerInterface
 
             $response = $this->middleware->handle($request);
         } catch (ErrorException $exception) {
-            $response = $this->router->getErrorResponse($request, $exception->getStatus());
+            $response = $this->router->getErrorResponse($request, $exception->getStatus(), $exception);
         } catch (Throwable $throwable) {
             $response = $this->router->getErrorResponse($request, 500, $throwable);
         } finally {
@@ -90,7 +88,7 @@ class Quest implements RequestHandlerInterface
 
     protected function createRequest(): ServerRequestInterface
     {
-        $factory = self::getFactory();
+        $factory = new Psr17Factory();
 
         return (new ServerRequestCreator($factory, $factory, $factory, $factory))->fromGlobals();
     }
@@ -110,29 +108,5 @@ class Quest implements RequestHandlerInterface
         }
 
         echo $response->getBody();
-    }
-
-    public static function createResponse(string $body, array $headers = []): ResponseInterface
-    {
-        $response = self::getFactory()->createResponse();
-
-        $response->getBody()->write($body);
-
-        foreach ($headers as $header => $value) {
-            $response = $response->withHeader($header, $value);
-        }
-
-        return $response;
-    }
-
-    protected static function getFactory(): Psr17Factory
-    {
-        if (isset(self::$factory)) {
-            return self::$factory;
-        }
-
-        self::$factory = new Psr17Factory();
-
-        return self::$factory;
     }
 }

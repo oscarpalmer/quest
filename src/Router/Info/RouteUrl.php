@@ -13,7 +13,7 @@ use function ltrim;
 use function mb_strtolower;
 use function preg_match_all;
 
-class RouteInfoUrl
+class RouteUrl
 {
     protected string $path;
 

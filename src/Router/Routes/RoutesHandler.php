@@ -23,11 +23,14 @@ class RoutesHandler
         return $this;
     }
 
+    public function connect(string $path, callable|string $callback, string $method = null, array $middleware = []): self
+    {
+        return $this->add('CONNECT', $path, $callback, $method, $middleware);
+    }
+
     public function delete(string $path, callable|string $callback, string $method = null, array $middleware = []): self
     {
-        $this->router->routes->add('DELETE', $path, $callback, $method);
-
-        return $this;
+        return $this->add('DELETE', $path, $callback, $method, $middleware);
     }
 
     public function error(int $status, callable|string $callback, string $method = null): self
@@ -39,36 +42,31 @@ class RoutesHandler
 
     public function get(string $path, callable|string $callback, string $method = null, array $middleware = []): self
     {
-        $this->router->routes->add('GET', $path, $callback, $method, $middleware);
-
-        return $this;
+        return $this->add('GET', $path, $callback, $method, $middleware);
     }
 
     public function options(string $path, callable|string $callback, string $method = null, array $middleware = []): self
     {
-        $this->router->routes->add('OPTIONS', $path, $callback, $method, $middleware);
-
-        return $this;
+        return $this->add('OPTIONS', $path, $callback, $method, $middleware);
     }
 
     public function patch(string $path, callable|string $callback, string $method = null, array $middleware = []): self
     {
-        $this->router->routes->add('PATCH', $path, $callback, $method, $middleware);
-
-        return $this;
+        return $this->add('PATCH', $path, $callback, $method, $middleware);
     }
 
     public function post(string $path, callable|string $callback, string $method = null, array $middleware = []): self
     {
-        $this->router->routes->add('POST', $path, $callback, $method, $middleware);
-
-        return $this;
+        return $this->add('POST', $path, $callback, $method, $middleware);
     }
 
     public function put(string $path, callable|string $callback, string $method = null, array $middleware = []): self
     {
-        $this->router->routes->add('PUT', $path, $callback, $method, $middleware);
+        return $this->add('PUT', $path, $callback, $method, $middleware);
+    }
 
-        return $this;
+    public function trace(string $path, callable|string $callback, string $method = null, array $middleware = []): self
+    {
+        return $this->add('TRACE', $path, $callback, $method, $middleware);
     }
 }

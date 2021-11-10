@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace oscarpalmer\Quest\Router;
+namespace oscarpalmer\Quest\Router\Middleware;
 
 use InvalidArgumentException;
 
@@ -15,7 +15,7 @@ use function call_user_func;
 use function count;
 use function is_string;
 
-class Middleware implements RequestHandlerInterface
+class MiddlewareHandler implements RequestHandlerInterface
 {
     protected mixed $handler;
     protected array $items;

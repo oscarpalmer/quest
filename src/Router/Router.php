@@ -13,10 +13,10 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 use oscarpalmer\Quest\Exception\MethodNotAllowedException;
 use oscarpalmer\Quest\Exception\NotFoundException;
-use oscarpalmer\Quest\Router\Info\RouteInfo;
-use oscarpalmer\Quest\Router\Info\RouteInfoUrl;
-use oscarpalmer\Quest\Router\Item\BaseItem;
-use oscarpalmer\Quest\Router\Routes\Routes;
+use oscarpalmer\Quest\Router\Info\RouteUrl;
+use oscarpalmer\Quest\Router\Item\RouteItem;
+use oscarpalmer\Quest\Router\Middleware\MiddlewareHandler;
+use oscarpalmer\Quest\Router\Routes\RoutesCollection;
 use oscarpalmer\Quest\Router\Routes\RoutesHandler;
 
 use function call_user_func;
@@ -27,13 +27,13 @@ class Router implements RequestHandlerInterface
 {
     public array $errors;
     public RoutesHandler $handler;
-    public Routes $routes;
+    public RoutesCollection $routes;
 
     public function __construct()
     {
         $this->errors = [];
         $this->handler = new RoutesHandler($this);
-        $this->routes = new Routes();
+        $this->routes = new RoutesCollection();
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -45,9 +45,7 @@ class Router implements RequestHandlerInterface
 
         foreach ($routes as $route) {
             if ($route->match($path)) {
-                return (new Middleware(function ($request) use ($path, $route) {
-                    return $this->getResponse($request, $route, new RouteInfoUrl($path, $route->getPath(), $route->getParameters()), null);
-                }))->add($route->getMiddleware())->handle($request);
+                return $this->getResponse($request, $route);
             }
         }
 
@@ -61,20 +59,26 @@ class Router implements RequestHandlerInterface
     public function getErrorResponse(ServerRequestInterface $request, int $status, Throwable $throwable = null): ResponseInterface
     {
         if (isset($this->errors[$status])) {
-            $routeInfoUrl = new RouteInfoUrl($request->getUri()->getPath());
-
-            return $this->getResponse($request, $this->errors[$status], $routeInfoUrl, $throwable);
+            return call_user_func($this->errors[$status]->getCallback(), $request, $throwable);
         }
 
         $response = new Response($status);
 
-        $response->getBody()->write(sprintf('%d %s<br><br>%s', $status, $response->getReasonPhrase(), (string) $throwable ?? ''));
+        $responseBody = sprintf('%d %s<br><br>%s', $status, $response->getReasonPhrase(), (string) $throwable ?? '');
+
+        $response->getBody()->write($responseBody);
 
         return $response;
     }
 
-    protected function getResponse(ServerRequestInterface $request, BaseItem $item, RouteInfoUrl $routeInfoUrl, ?Throwable $throwable): ResponseInterface
+    protected function getResponse(ServerRequestInterface $request, RouteItem $route): ResponseInterface
     {
-        return call_user_func($item->getCallback(), $request, new RouteInfo($routeInfoUrl, $throwable));
+        $middleware = new MiddlewareHandler(function (ServerRequestInterface $request) use ($route) {
+            $routeUrl = new RouteUrl($request->getUri()->getPath(), $route->getPath(), $route->getParameters());
+
+            return call_user_func($route->getCallback(), $request, $routeUrl);
+        });
+
+        return $middleware->add($route->getMiddleware())->handle($request);
     }
 }
