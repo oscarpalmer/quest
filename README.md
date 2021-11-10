@@ -12,7 +12,8 @@ Quest is a router for PHP `>=8`.
 
 ## Todo
 
-- Response helpers
+- Error responses
+- Redirection
 - Tests
 - Comments, explanations, etc.
 - Documentation
